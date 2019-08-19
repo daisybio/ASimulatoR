@@ -1,0 +1,9 @@
+*.Rproj
+.Rproj.user
+.Rprofile
+.Rhistory
+.RData
+.Ruserdata
+packrat/lib*/
+ensembl/*
+readsY/*
