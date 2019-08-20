@@ -27,18 +27,19 @@ gtf_premRNA <- lapply(gtf_genes, function(gene){
 # gtf_dt <- setDT(as.data.frame(gtf))
 
 ### simulate ----
-# make gtf smaller for an example run take a few random transcripts from the Y-chromosome
-y_gtf <- gtf[seqnames(gtf) == "Y"]
-nr_transcripts <- 100
-small_y_gtf <- y_gtf[y_gtf$transcript_id %in% sample(unique(y_gtf$transcript_id), nr_transcripts)]
-small_y_gtf_path <- 'ensembl/Homo_sapiens.GRCh38.97.chrY.small.gtf'
-export(small_y_gtf, small_y_gtf_path)
+# make gtf smaller for an example run
+allowed_genes <- c("ENSG00000063177", "ENSG00000198755")
+small_gtf <- gtf[gtf$gene_id %in% allowed_genes]
+nr_transcripts <- length(small_gtf[small_gtf$type == "transcript"]$transcript_id)
+small_gtf_path <- 'exampleRun/example.gtf'
+export(small_gtf, small_gtf_path)
 fold_change_mat <- matrix(c(rep(2, 5), rep(1, nr_transcripts - 5), 
                             rep(1, 5), rep(4, 5), rep(1, nr_transcripts - 10)), 
                           nrow = nr_transcripts)
-out_dir <- 'readsY'
+out_dir <- 'exampleRun'
+seq_path <- 'ensembl/fasta'
 err_rate = 0
-simulate_experiment(gtf = small_y_gtf_path, seqpath = 'ensembl/fasta',
+simulate_experiment(gtf = small_gtf_path, seqpath = seq_path,
                     fold_changes = fold_change_mat, outdir = out_dir, 
                     error_rate = err_rate, reads_per_transcript = rep(300, nr_transcripts))
 out_files <- list.files(out_dir)
