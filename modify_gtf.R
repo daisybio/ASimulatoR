@@ -1,26 +1,32 @@
 library(rtracklayer)
 library(polyester)
 library(data.table)
+source("functions.R")
 
-### gtf manipulation ----
+### importing gtf ----
+gtf_path <- 'ensembl/Homo_sapiens.GRCh38.97.gtf'
 
-gtf <- import('ensembl/Homo_sapiens.GRCh38.97.gtf')
+message("importing gtf...")
+gtf <- import(gtf_path)
+
+# TODO: set seed
+# TODO: check frameshift
+# TODO: filter for genes with more than 3 exons
+nr_genes <- 100
+gtf <- gtf[gtf$gene_id %in% sample(unique(gtf$gene_id), nr_genes)]
+
 gtf_exons <- gtf[gtf$type == "exon"]
 gtf_genes <- split(x = gtf_exons, f = gtf_exons$gene_id)
-gtf_premRNA <- lapply(gtf_genes, function(gene){
-  trs <- split(gene, gene$transcript_id)
-  hyp_premRNA <- Reduce(union, trs)
-  mdata <- mcols(gene)[1,]
-  gene_id <- mdata$gene_id
-  mdata[!as.vector(is.na(mdata))] <- NA
-  mdata$gene_id <- gene_id
-  mdata$type <- "exon"
-  mdata$transcript_id <- paste0(gene_id, "_preMRNA")
-  # TODO add metadata to preMRNA
-  # TODO check hyp. premRNA once again
-})
 
-# TODO: introduce splicing
+### creating premRNA ----
+nr_cores <- 16
+gtf_premRNA <- GRangesList(mclapply(gtf_genes, create_premRNA, mc.cores = nr_cores))
+
+# TODO: report nr_events (paramter), 
+# coordinates in global/transcript, 
+# psi values, 
+# look at abundance,
+# exon_usage
 
 
 # # make data.table from gtf ----
