@@ -3,25 +3,32 @@ library(polyester)
 library(data.table)
 source("functions.R")
 
+set.seed(19)
+
 ### importing gtf ----
 gtf_path <- 'ensembl/Homo_sapiens.GRCh38.97.gtf'
 
 message("importing gtf...")
 gtf <- import(gtf_path)
 
-# TODO: set seed
-# TODO: check frameshift
-# TODO: filter for genes with more than 3 exons
-nr_genes <- 100
-gtf <- gtf[gtf$gene_id %in% sample(unique(gtf$gene_id), nr_genes)]
+nr_events <- list("ES" = 20, "MES" = 10, "IR" = 10, "A3" = 10, "A5" = 10, "ATSS" = 5, "ATTS" = 5, "MEE" = 10, "NO_AS" = 20)
+names_events <- c("ES", "MES", "IR", "A3", "A5", "ATSS", "ATTS", "MEE", "NO_AS")
+nr_genes <- sum(unlist(nr_events))
+nr_cores <- 16
 
-gtf_exons <- gtf[gtf$type == "exon"]
-gtf_genes <- split(x = gtf_exons, f = gtf_exons$gene_id)
+gtf_exons <- gtf[gtf$transcript_biotype == "protein_coding" & gtf$type == "exon"]
+gtf_exons_reduced <- gtf_exons[gtf_exons$gene_id %in% sample(unique(gtf_exons$gene_id), nr_genes)]
+
+gtf_genes <- split(x = gtf_exons_reduced, f = gtf_exons_reduced$gene_id)
+gtf_genes_partitioned <- split(gtf_genes, sample(rep(1:length(nr_events), unlist(nr_events))))
+names(gtf_genes_partitioned) <- names_events
 
 ### creating premRNA ----
-nr_cores <- 16
-gtf_premRNA <- GRangesList(mclapply(gtf_genes, create_premRNA, mc.cores = nr_cores))
+custom_gtf <- GRangesList(lapply(names_events, function(as_event){
+  construct_splice_variants(gtf_genes_partitioned[[as_event]], nr_events[[as_event]], nr_cores = nr_cores)
+}))
 
+# TODO: premRNA and variant
 # TODO: report nr_events (paramter), 
 # coordinates in global/transcript, 
 # psi values, 
@@ -48,6 +55,8 @@ err_rate = 0
 simulate_experiment(gtf = small_gtf_path, seqpath = seq_path,
                     fold_changes = fold_change_mat, outdir = out_dir, 
                     error_rate = err_rate, reads_per_transcript = rep(300, nr_transcripts))
+
+
 out_files <- list.files(out_dir)
 fasta_files <- file.path(out_dir, out_files[endsWith(out_files, ".fasta")])
 
