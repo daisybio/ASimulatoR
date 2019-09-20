@@ -5,4 +5,5 @@
 .RData
 .Ruserdata
 packrat/lib*/
-ensembl/Homo_sapiens.GRCh38.97.gtf.premRNA.rda
+ensembl/*
+outdir/*
