@@ -6,54 +6,27 @@ get_not_first <- function(n, first){
   ifelse(first, draw_one_sample_safely((2:n)), draw_one_sample_safely((1:(n - 1))))
 }
 
-construct_splice_variants <- function(hypPreMRNA, as_events){
-  if(is.null(hypPreMRNA) | !(class(hypPreMRNA) == 'GRanges')) 
+get_transcriptomic_coord <- function(transcript, negative_strand){
+  if(is.null(transcript) | !(class(transcript) == 'GRanges')) 
     stop('input must be of class GRanges')
-  # event_coordinates <- c('ES_start', 'ES_end', 'MES_start', 'MES_end', 'IR_start', 'IR_end', 'A5_start', 'A5_end', 'A3_start', 'A3_end',
-  #                        'ATSS_start', 'ATSS_end', 'ATTS_start', 'ATTS_end', 'MEE_start', 'MEE_end')
-  # mcols(hypPreMRNA)[event_coordinates] <- NA
-  splice_variant_1 <- sort(hypPreMRNA)
-  mcols(splice_variant_1)$transcript_id <- gsub('preMRNA', 'variant1', mcols(splice_variant_1)$transcript_id, fixed = T)
-  
-  splice_variant_2 <- splice_variant_1
-  mcols(splice_variant_2)$transcript_id <- gsub('variant1', 'variant2', mcols(splice_variant_2)$transcript_id, fixed = T)
-  
-  negative_strand <- runValue(strand(splice_variant_1) == '-')
-  
-  # TODO: check if the as_events are compatible
-  if('NO_AS' %in% as_events) return(hypPreMRNA)
-  if('MEE' %in% as_events){
-    splice_variant_1 <- construct_MEE_variant(splice_variant_1) 
-    return(splice_variant_1)
-  }
-  if('ATSS' %in% as_events){
-    splice_variant_2 <- construct_ATSS_ATTS_variant(splice_variant_2, negative_strand, T)
-    
-  }else if('ATTS' %in% as_events){
-    splice_variant_2 <- construct_ATSS_ATTS_variant(splice_variant_2, negative_strand, F)
-    
-  }else if('MES' %in% as_events){
-    splice_variant_2 <- construct_MES_variant(splice_variant_2)
-    
-  }else if('ES' %in% as_events){
-    splice_variant_2 <- construct_ES_variant(splice_variant_2)
-    
-  }else if('IR' %in% as_events){
-    splice_variant_2 <- construct_IR_variant(splice_variant_2)
-    
-  }
-  if('A5' %in% as_events){
-    splice_variant_2 <- construct_A5_A3_variant(splice_variant_2, negative_strand, T)
-    
-  }
-  if('A3' %in% as_events){
-    splice_variant_2 <- construct_A5_A3_variant(splice_variant_2, negative_strand, F)
-    
-  }
-  return(c(splice_variant_1, splice_variant_2))
+  if(negative_strand) transcript <- transcript[length(transcript):1]
+  mcols(transcript)$"TR_end" <- cumsum(width(ranges(transcript)))
+  mcols(transcript)$"TR_start" <- c(1, (transcript$'TR_end' + 1)[-length(transcript)])
+  sort(transcript)
 }
 
-create_hyp_premRNA <- function(gene){
+set_variant <- function(splice_variant, ase, start, end, tr_start, tr_end, negative_strand){
+  if(is.null(splice_variant) | !(class(splice_variant) == 'GRanges')) 
+    stop('input must be of class GRanges')
+  mcols(splice_variant)[[paste(ase, 'genomic_start', sep = '_')]] <- start
+  mcols(splice_variant)[[paste(ase, 'genomic_end', sep = '_')]] <- end
+  mcols(splice_variant)[[paste(ase, 'transcriptomic_start', sep = '_')]] <- tr_start
+  mcols(splice_variant)[[paste(ase, 'transcriptomic_end', sep = '_')]] <- tr_end
+  mcols(splice_variant)$CS <- F
+  return(get_transcriptomic_coord(splice_variant, negative_strand))
+}
+
+create_hyp_premRNA <- function(gene, negative_strand){
   if(is.null(gene) | !class(gene) == 'GRanges') stop('input has to be GRanges object')
   hyp_premRNA <- reduce(gene)
   mdata <- mcols(gene)[1,]
@@ -63,47 +36,50 @@ create_hyp_premRNA <- function(gene){
   mdata$gene_id <- gene_id
   mdata$type <- 'exon'
   mdata$transcript_id <- paste0(gene_id, '_preMRNA')
+  mdata$CS <- T
   mcols(hyp_premRNA) <- mdata
+  hyp_premRNA <- get_transcriptomic_coord(hyp_premRNA, negative_strand)
   return(hyp_premRNA)
 }
 
-construct_ES_variant <- function(premRNA){
+construct_ES_variant <- function(premRNA, negative_strand){
   if(is.null(premRNA) | !class(premRNA) == 'GRanges') stop('input has to be GRanges object')
   if(length(premRNA) > 2){
     exon_ind <- draw_one_sample_safely((2:(length(premRNA) - 1)))
     splice_variant <- premRNA[-exon_ind]
-    mcols(splice_variant)$'ES_start' <- start(ranges(premRNA[exon_ind]))
-    mcols(splice_variant)$'ES_end' <- end(ranges(premRNA[exon_ind]))
-    return(splice_variant)
+    return(set_variant(splice_variant, 'ES', start(ranges(premRNA[exon_ind])), end(ranges(premRNA[exon_ind])),
+                       premRNA[exon_ind]$TR_start, premRNA[exon_ind]$TR_end, negative_strand))
   } else {
     stop('not long enough to introduce ES')
   }
 }
 
-construct_MES_variant <- function(premRNA){
+construct_MES_variant <- function(premRNA, negative_strand){
   if(is.null(premRNA) | !class(premRNA) == 'GRanges') stop('input has to be GRanges object')
   if(length(premRNA) > 3){
     first_exon_ind <- draw_one_sample_safely((2:(length(premRNA) - 2)))
     nr_exons <- draw_one_sample_safely((2:(length(premRNA) - first_exon_ind)))
-    splice_variant <- premRNA[-(first_exon_ind:(first_exon_ind + nr_exons - 1))]
-    #if(end(ranges(premRNA[(first_exon_ind + nr_exons - 1)])) < start(ranges(premRNA[first_exon_ind]))) browser()
-    mcols(splice_variant)$'MES_start' <- start(ranges(premRNA[first_exon_ind]))
-    mcols(splice_variant)$'MES_end' <- end(ranges(premRNA[(first_exon_ind + nr_exons - 1)]))
-    return(splice_variant)
+    last_exon_ind <- (first_exon_ind + nr_exons - 1)
+    splice_variant <- premRNA[-(first_exon_ind:last_exon_ind)]
+    return(set_variant(splice_variant, 'MES', start(ranges(premRNA[first_exon_ind])), end(ranges(premRNA[(first_exon_ind + nr_exons - 1)])),
+                        ifelse(negative_strand, premRNA[last_exon_ind]$TR_start, premRNA[first_exon_ind]$TR_start), 
+                        ifelse(negative_strand, premRNA[first_exon_ind]$TR_end, premRNA[last_exon_ind]$TR_end),
+                         negative_strand))
   } else {
     stop('not long enough to introduce MES')
   }
 }
 
-construct_IR_variant <- function(premRNA){
+construct_IR_variant <- function(premRNA, negative_strand){
   if(is.null(premRNA) | !class(premRNA) == 'GRanges') stop('input has to be GRanges object')
   if(length(premRNA) > 1){
     exon_ind <- draw_one_sample_safely((1:(length(premRNA) - 1)))
     splice_variant <- premRNA[-(exon_ind + 1)]
     end(ranges(splice_variant[exon_ind])) <- end(ranges(premRNA[exon_ind + 1]))
-    mcols(splice_variant)$'IR_start' <- (end(ranges(premRNA[exon_ind])) + 1)
-    mcols(splice_variant)$'IR_end' <- (start(ranges(premRNA[exon_ind + 1])) - 1)
-    return(splice_variant)
+    tr_start <- (ifelse(negative_strand, premRNA[exon_ind + 1L]$TR_end, premRNA[exon_ind]$TR_end) + 1L)
+    #browser() # TODO: stuck here
+    return(set_variant(splice_variant, 'IR', (end(ranges(premRNA[exon_ind])) + 1L), (start(ranges(premRNA[exon_ind + 1])) - 1L), 
+                       tr_start, (tr_start + start(ranges(premRNA[exon_ind + 1L])) - end(ranges(premRNA[exon_ind])) - 2), negative_strand))
   } else {
     stop('not long enough to introduce IR')
   }
@@ -123,9 +99,10 @@ construct_A5_A3_variant <- function(premRNA, negative_strand, a5){
       end(ranges(splice_variant[exon_ind])) <- new_site - 1
       cutout <- IRanges(new_site, end(ranges(premRNA[exon_ind])))
     }
-    mcols(splice_variant)[[ifelse(a5, 'A5_start', 'A3_start')]] <- start(cutout)
-    mcols(splice_variant)[[ifelse(a5, 'A5_end', 'A3_end')]] <- end(cutout)
-    return(splice_variant)
+    tr_first <- ifelse(a5, premRNA[exon_ind]$TR_end, premRNA[exon_ind]$TR_start)
+    tr_second <- ifelse(a5, (tr_first - width(cutout) + 1L), (tr_first + width(cutout) - 1L))
+    return(set_variant(splice_variant, ifelse(a5, 'A5', 'A3'), start(cutout), end(cutout), 
+                       ifelse(a5, tr_second, tr_first), ifelse(a5, tr_first, tr_second), negative_strand))
   } else {
     stop('not long enough to introduce A5/A3')
   }
@@ -142,29 +119,76 @@ construct_ATSS_ATTS_variant <- function(premRNA, negative_strand, atss){
       splice_variant <- premRNA[-(1:exon_ind)]
       cutout <- IRanges(start(ranges(premRNA[1])), end(ranges(premRNA[exon_ind])))
     }
-    mcols(splice_variant)[[ifelse(atss, 'ATSS_start', 'ATTS_start')]] <- start(cutout)
-    mcols(splice_variant)[[ifelse(atss, 'ATSS_end', 'ATTS_end')]] <- end(cutout)
-    return(splice_variant)
+    return(set_variant(splice_variant, ifelse(atss, 'ATSS', 'ATTS'), start(cutout), end(cutout),
+                      ifelse(atss, 1L, premRNA[exon_ind]$TR_start), ifelse(atss, premRNA[exon_ind]$TR_end, max(premRNA$TR_end)), negative_strand))
   } else {
     stop('not long enough to introduce ATSS/ATTS')
   }
 }
 
-construct_MEE_variant <- function(premRNA){
+construct_MEE_variant <- function(premRNA, negative_strand){
   if(is.null(premRNA) | !class(premRNA) == 'GRanges') stop('input has to be GRanges object')
   if(length(premRNA) > 3){
     exon_ind <- draw_one_sample_safely((2:(length(premRNA) - 2)))
     splice_variant_2 <- premRNA[-exon_ind]
     mcols(splice_variant_2)$transcript_id <- gsub('variant1', 'variant2', mcols(splice_variant_2)$transcript_id, fixed = T)
-    mcols(splice_variant_2)$'MEE_start' <- start(ranges(premRNA[exon_ind]))
-    mcols(splice_variant_2)$'MEE_end' <- end(ranges(premRNA[exon_ind]))
     splice_variant_1 <- premRNA[-(exon_ind + 1)]
-    mcols(splice_variant_1)$'MEE_start' <- start(ranges(premRNA[exon_ind + 1]))
-    mcols(splice_variant_1)$'MEE_end' <- end(premRNA[exon_ind + 1])
-    return(c(splice_variant_1, splice_variant_2))
+    tr_start <- ifelse(negative_strand, premRNA[exon_ind + 2L]$TR_end, premRNA[exon_ind - 1L]$TR_end) + 1L
+    return(c(set_variant(splice_variant_1, 'MEE', start(ranges(premRNA[exon_ind])), end(ranges(premRNA[exon_ind])),
+                         tr_start, (tr_start + width(ranges(premRNA[exon_ind])) - 1L), negative_strand),
+             set_variant(splice_variant_2, 'MEE', start(ranges(premRNA[exon_ind + 1])), end(premRNA[exon_ind + 1]),
+                         tr_start, (tr_start + width(ranges(premRNA[exon_ind + 1L])) - 1L), negative_strand)))
   } else {
     stop('not long enough to introduce MEE')
   }
+}
+
+construct_splice_variants <- function(hypPreMRNA, as_events, negative_strand){
+  if(is.null(hypPreMRNA) | !(class(hypPreMRNA) == 'GRanges')) 
+    stop('input must be of class GRanges')
+  # event_coordinates <- c('ES_start', 'ES_end', 'MES_start', 'MES_end', 'IR_start', 'IR_end', 'A5_start', 'A5_end', 'A3_start', 'A3_end',
+  #                        'ATSS_start', 'ATSS_end', 'ATTS_start', 'ATTS_end', 'MEE_start', 'MEE_end')
+  # mcols(hypPreMRNA)[event_coordinates] <- NA
+  splice_variant_1 <- sort(hypPreMRNA)
+  mcols(splice_variant_1)$transcript_id <- gsub('preMRNA', 'variant1', mcols(splice_variant_1)$transcript_id, fixed = T)
+  
+  splice_variant_2 <- splice_variant_1
+  mcols(splice_variant_2)$transcript_id <- gsub('variant1', 'variant2', mcols(splice_variant_2)$transcript_id, fixed = T)
+  
+  # event_annotation <- data.table(
+  #   cs = character(),
+  #   variant = character(),
+  #   affected_genomic_region = integer(),
+  #   affected_transcriptomic_region = integer(),
+  #   event_annotation = character(),
+  #   inclusion_reads = integer(),
+  #   exclusion_reads = integer()
+  # )
+  # TODO: check if the as_events are compatible
+  if('NO_AS' %in% as_events){
+    return(hypPreMRNA)} 
+  if('MEE' %in% as_events){
+    splice_variant_1 <- construct_MEE_variant(splice_variant_1, negative_strand)
+    return(splice_variant_1)
+  }
+  if('ATSS' %in% as_events){
+    splice_variant_2 <- construct_ATSS_ATTS_variant(splice_variant_2, negative_strand, T)
+  }else if('ATTS' %in% as_events){
+    splice_variant_2 <- construct_ATSS_ATTS_variant(splice_variant_2, negative_strand, F)
+  }else if('MES' %in% as_events){
+    splice_variant_2 <- construct_MES_variant(splice_variant_2, negative_strand)
+  }else if('ES' %in% as_events){
+    splice_variant_2 <- construct_ES_variant(splice_variant_2, negative_strand)
+  }else if('IR' %in% as_events){
+    splice_variant_2 <- construct_IR_variant(splice_variant_2, negative_strand)
+  }
+  if('A5' %in% as_events){
+    splice_variant_2 <- construct_A5_A3_variant(splice_variant_2, negative_strand, T)
+  }
+  if('A3' %in% as_events){
+    splice_variant_2 <- construct_A5_A3_variant(splice_variant_2, negative_strand, F)
+  }
+  return(list("variants" = c(splice_variant_1, splice_variant_2), 'annotation' = event_annotation))
 }
 
 fastqFromFasta <- function(in_file){
