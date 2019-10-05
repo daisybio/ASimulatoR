@@ -70,9 +70,9 @@ gtf_exons <- gtf[gtf$transcript_biotype == 'protein_coding' & gtf$type == 'exon'
 message('creating splice variants...')
 #TODO: check if there is a method for parallel and side-effects
 #TODO: foreach and no global operator, create blacklist with used and small genes
-splicing_variants <- #mc
-  lapply(names(nr_events), function(event_names){
-  result <- GRanges()
+variants_event_annotation <- #mc
+  sapply(names(nr_events), function(event_names){
+  result <- list()
   event_names <- strsplit(event_names, ',', fixed = T)[[1]]
   count <- 0L
   
@@ -88,18 +88,21 @@ splicing_variants <- #mc
     drawn_hypPreMRNA <- create_hyp_premRNA(drawn_gene, negative_strand)
     if(length(drawn_hypPreMRNA) > cutoff){
       count <- count + 1L
-      result <- c(result, construct_splice_variants(drawn_hypPreMRNA, event_names, negative_strand))
+      result[[count]] <- construct_splice_variants(drawn_hypPreMRNA, event_names, negative_strand)
     }
   }
   result
 })#, mc.cores = nr_cores)
-names(splicing_variants) <- names(nr_events)
+variants_event_annotation <- unlist(unlist(variants_event_annotation, F), F)
+variants_ind <- endsWith(names(variants_event_annotation), "variant")
 message('finished creating splice variants')
+message('')
 
 
 ### simulate ----
 # combine all splice variants to create custom gtf for the read-simulation
-variants_gtf <- Reduce(c, splicing_variants)
+variants_gtf <- Reduce(c, variants_event_annotation[variants_ind])
+event_annotation <- rbindlist(variants_event_annotation[!variants_ind])
 # variants_gtf <- sortSeqlevels(variants_gtf)
 # variants_gtf <- sort(variants_gtf)
 # mcols(variants_gtf) <- data.frame(lapply(mcols(variants_gtf), as.character))
@@ -113,13 +116,18 @@ fold_change_mat <- matrix(c(rep(2, 5), rep(1, nr_transcripts - 5),
                             rep(1, 5), rep(4, 5), rep(1, nr_transcripts - 10)), 
                           nrow = nr_transcripts)
 
+message('starting simulation with polyester...')
 # use polyester to simulate reads
 simulate_experiment(gtf = variants_gtf_path, seqpath = seq_path,
                     fold_changes = fold_change_mat, outdir = outdir, 
                     error_rate = err_rate, reads_per_transcript = rep(300, nr_transcripts))
+                    
+message('donw simulating reads with polyester')
+message('')
 
 # create fastq files from fasta files
 # TODO: do more while going through fasta files
 out_files <- list.files(outdir)
 fasta_files <- file.path(outdir, out_files[endsWith(out_files, '.fasta')])
 mclapply(fasta_files, fastqFromFasta, mc.cores = nr_cores)
+fwrite(x = event_annotation, file = file.path(outdir, "event_annotation.csv"), quote = F)
