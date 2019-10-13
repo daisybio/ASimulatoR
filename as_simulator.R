@@ -1,6 +1,6 @@
-library(rtracklayer)
-library(polyester)
-library(data.table)
+require(rtracklayer)
+require(polyester)
+require(data.table)
 source('functions.R')
 
 ### comments
@@ -18,16 +18,16 @@ source('functions.R')
 ### parameters ----
 # general parameters
 seed <- 19L
-nr_cores <- 12L
+nr_cores <- 20L
 set.seed(seed)
 
 # as parameters
-gtf_path <- 'ensembl/Homo_sapiens.GRCh38.97.gtf'
+gtf_path <- '/nfs/scratch/ensembl/Homo_sapiens.GRCh38.97.gtf'
 nr_events <- list('ES' = 20L, 'MES' = 10L, 'IR' = 10L, 'A3' = 10L, 'A5' = 10L, 'ATSS' = 5L, 'ATTS' = 5L, 'MEE' = 10L, 'NO_AS' = 20L) 
 
 # polyester parameters
 outdir <- 'outdir'
-seq_path <- 'ensembl/Homo_sapiens.GRCh38.97.fa'
+seq_path <- '/nfs/scratch/ensembl/Homo_sapiens.GRCh38.97.fa'
 err_rate = 0L
 
 ### importing gtf ----
@@ -103,6 +103,8 @@ message('')
 # combine all splice variants to create custom gtf for the read-simulation
 variants_gtf <- Reduce(c, variants_event_annotation[variants_ind])
 event_annotation <- rbindlist(variants_event_annotation[!variants_ind])
+exon_resolution <- as.data.table(variants_gtf)
+exon_resolution <- exon_resolution[,which(unlist(lapply(exon_resolution, function(x)!all(is.na(x))))),with=F]
 # variants_gtf <- sortSeqlevels(variants_gtf)
 # variants_gtf <- sort(variants_gtf)
 # mcols(variants_gtf) <- data.frame(lapply(mcols(variants_gtf), as.character))
@@ -122,12 +124,23 @@ simulate_experiment(gtf = variants_gtf_path, seqpath = seq_path,
                     fold_changes = fold_change_mat, outdir = outdir, 
                     error_rate = err_rate, reads_per_transcript = rep(300, nr_transcripts))
                     
-message('donw simulating reads with polyester')
+message('done simulating reads with polyester')
 message('')
 
+### make statistics ----
 # create fastq files from fasta files
 # TODO: do more while going through fasta files
 out_files <- list.files(outdir)
 fasta_files <- file.path(outdir, out_files[endsWith(out_files, '.fasta')])
-mclapply(fasta_files, fastqFromFasta, mc.cores = nr_cores)
+message('creating fastq-files and statistics...')
+event_annotation_and_exon_resolution <- unlist(mclapply(fasta_files, check_reads_and_convert_format, event_annotation, exon_resolution, mc.cores = nr_cores), recursive = F)
+event_annotation_and_exon_resolution <- split(event_annotation_and_exon_resolution, names(event_annotation_and_exon_resolution))
+event_annotation <- Reduce(merge, event_annotation_and_exon_resolution$event_annotation)
+exon_resolution <- Reduce(merge, event_annotation_and_exon_resolution$exons)
+exon_resolution <- exon_resolution[order(transcript_id)]
+#tmp <- check_reads_and_convert_format(fasta_files[1], event_annotation, exon_dt)
+#TODO: merge multiple data tables
 fwrite(x = event_annotation, file = file.path(outdir, "event_annotation.csv"), quote = F)
+fwrite(x = exon_resolution, file = file.path(outdir, "exon_resolution.csv"), quote = F)
+message('done creating fastq-files and statistics')
+message('')
