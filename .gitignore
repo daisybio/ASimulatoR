@@ -6,4 +6,4 @@
 .Ruserdata
 packrat/lib*/
 ensembl/*
-outdir/*
+outdir*/*
