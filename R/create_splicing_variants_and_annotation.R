@@ -1,26 +1,23 @@
-draw_one_sample_safely <- function(v) {
+.draw_one_sample_safely <- function(v) {
   if (length(v) == 1)
     return(v[1])
   else
     return(sample(v, 1))
 }
 
-get_transcriptomic_coord <- function(widths){
+.get_transcriptomic_coord <- function(widths){
   tr_end <- cumsum(widths)
   tr_start <- c(1L, (tr_end + 1L)[-length(widths)])
   list(tr_start = tr_start, tr_end = as.integer(tr_end))
 }
 
-add_transcript_and_junction_lines <- function(variant){
+.add_transcript_and_junction_lines <- function(variant){
   # create transcript line
   tr <- range(variant)
   S4Vectors::mcols(tr) <- S4Vectors::mcols(variant[1])
   tr$type <- 'transcript'
   # create junction lines
-  # TODO: check if + 1 does the same as adjusting start and end
-  junctions <- GenomicRanges::gaps(variant, start = min(IRanges::start(variant)))
-  IRanges::start(junctions) <- IRanges::start(junctions) - 1
-  IRanges::end(junctions) <- IRanges::end(junctions) + 1
+  junctions <- GenomicRanges::gaps(variant, start = min(IRanges::start(variant))) + 1
   if (length(junctions) > 0)
   S4Vectors::mcols(junctions) <- S4Vectors::DataFrame(
     source = "as_simulator",
@@ -46,7 +43,7 @@ add_transcript_and_junction_lines <- function(variant){
   variant
 }
 
-add_gene_line <- function(orig_template, template){
+.add_gene_line <- function(orig_template, template){
   g <- range(orig_template)
   S4Vectors::mcols(g) <- S4Vectors::mcols(template[1])
   g$type <- 'gene'
@@ -59,19 +56,19 @@ add_gene_line <- function(orig_template, template){
 }
 
 
-assign_events <- function(v, min_nr_exons_per_event) {
+.assign_events <- function(v, min_nr_exons_per_event) {
   # done with all assignments
   if (length(min_nr_exons_per_event) == 0) return(list())
   # assign event and split vector, try until it works
   # TODO: assign greedy after maximum number of attemtps exceeded
   while (T) {
     result <- list()
-    event <- draw_one_sample_safely(min_nr_exons_per_event)
+    event <- .draw_one_sample_safely(min_nr_exons_per_event)
     # does not work
     if (event > length(v)) {
       stop('Error in assign events: Event length is bigger than vector.')
     }
-    event_start <- draw_one_sample_safely(1:(length(v) - event + 1))
+    event_start <- .draw_one_sample_safely(1:(length(v) - event + 1))
     vs <-
       list(v1 = v[1:event_start], v2 = v[(event_start + event - 1):length(v)])
     result[[names(event)]] <-
@@ -86,15 +83,15 @@ assign_events <- function(v, min_nr_exons_per_event) {
         sum(min_nr_exons_per_event_tmp[!events_first]) - (sum(!events_first) - 1L) > length(vs$v2))
       next
     result_v1 <-
-      assign_events(vs$v1, min_nr_exons_per_event_tmp[events_first])
+      .assign_events(vs$v1, min_nr_exons_per_event_tmp[events_first])
     result_v2 <-
-      assign_events(vs$v2, min_nr_exons_per_event_tmp[!events_first])
+      .assign_events(vs$v2, min_nr_exons_per_event_tmp[!events_first])
     if ((length(result_v1) + length(result_v2)) == length(min_nr_exons_per_event_tmp))
       return(c(result, result_v1, result_v2))
   }
 }
 
-apply_exon_events <- function(v, comb, event_exons) {
+.apply_exon_events <- function(v, comb, event_exons) {
   if ('afe' %in% comb)
     v[c(1, 2)] <- v[c(2, 1)]
   if ('ale' %in% comb)
@@ -110,16 +107,34 @@ apply_exon_events <- function(v, comb, event_exons) {
   return(v)
 }
 
+#' Internal function to create alternative splicing events
+#'
+#' This is not intended to be called directly;
+#' instead it is meant to be called via \code{\link{simulate_alternative_cplicing}}
+#'
+#' @param gtf_path path to gtf from which exon_supersets are created
+#' @param valid_chromosomes
+#' @param event_probs
+#' @param outdir
+#' @param ncores the number of cores to be utilized for parallel generation
+#'   of splice variants.
+#' @param write_gff
+#' @param max_genes
+#'
+#' @return the exons, junctions and retained introns as data table in gtf style
+#' @import data.table
+#' @importFrom parallel mclapply
+#' @importFrom methods as
+#' @importFrom stats runif setNames
+#' @importFrom rtracklayer import export
 create_splicing_variants_and_annotation <-
   function(gtf_path,
-           max_genes = NULL,
-           seqpath,
+           valid_chromosomes,
            event_probs,
            outdir,
            ncores,
-           write_gff = TRUE) {
-
-    valid_chromosomes <- sub('.fa', '', list.files(seqpath))
+           write_gff,
+           max_genes) {
 
     ### create exon_superset ----
     if (file.exists(paste0(gtf_path, '.exon_superset.rda'))) {
@@ -163,7 +178,7 @@ create_splicing_variants_and_annotation <-
               template = T,
               gene_exon_number = 1L:length(template)
             ),
-            get_transcriptomic_coord(IRanges::width(template))
+            .get_transcriptomic_coord(IRanges::width(template))
           )
         template
       }, mc.cores = ncores)
@@ -178,20 +193,24 @@ create_splicing_variants_and_annotation <-
 
     #TODO: exclude one exon genes
 
+    gene_lengths <- sapply(exon_supersets, length)
+    multiple_exon_supersets <- exon_supersets[names(gene_lengths)[gene_lengths != 1]]
+
     shuffled_exon_supersets <-
-      sample(exon_supersets, min(length(exon_supersets), max_genes))
+      sample(multiple_exon_supersets, min(length(multiple_exon_supersets), max_genes))
 
     ### create splice variants and annotation ----
 
     message('create splicing variants and annotation...')
     #TODO: is random number generation ok?
+    #TODO: best idea would be to first assign events to exon_superset and then work through it.
     all_variants_and_event_annotation <-
       parallel::mclapply(shuffled_exon_supersets, function(orig_template) {
         construct <- names(event_probs)[runif(length(event_probs)) < event_probs]
         neg_strand <- S4Vectors::runValue(GenomicRanges::strand(orig_template)) == '-'
         gene_id <- orig_template$gene_id[1]
         if (length(construct) == 0) {
-          return(list(variants = add_gene_line(orig_template, add_transcript_and_junction_lines(orig_template))))
+          return(list(variants = .add_gene_line(orig_template, .add_transcript_and_junction_lines(orig_template))))
         } else {
           event_combs <- strsplit(construct, ',', T)
           available_exons <- length(orig_template)
@@ -203,7 +222,7 @@ create_splicing_variants_and_annotation <-
             sum(min_nr_exons_per_event[all_events]) - (length(all_events) - 1L)
 
           if (min_nr_exons > available_exons) {
-            return(list(variants = add_gene_line(orig_template, add_transcript_and_junction_lines(orig_template))))
+            return(list(variants = .add_gene_line(orig_template, .add_transcript_and_junction_lines(orig_template))))
           }
 
           exon_vector <-
@@ -211,13 +230,13 @@ create_splicing_variants_and_annotation <-
           exon_vector_tmp <- exon_vector
           all_events_tmp <- all_events
           if ('afe' %in% all_events) {
-            exon_vector[draw_one_sample_safely(c(1,2))] <- F
+            exon_vector[.draw_one_sample_safely(c(1,2))] <- F
             exon_vector_tmp <- exon_vector_tmp[-c(1, 2)]
             all_events_tmp <-
               all_events_tmp[all_events_tmp != 'afe']
           }
           if ('ale' %in% all_events) {
-            exon_vector[draw_one_sample_safely(c((length(exon_vector) - 1),length(exon_vector)))] <-
+            exon_vector[.draw_one_sample_safely(c((length(exon_vector) - 1),length(exon_vector)))] <-
               F
             exon_vector_tmp <-
               exon_vector_tmp[-c(length(exon_vector_tmp) - 1, length(exon_vector_tmp))]
@@ -227,23 +246,23 @@ create_splicing_variants_and_annotation <-
           if ('mes' %in% all_events) {
             mee_max_skipped_exons <- available_exons - min_nr_exons + 2
             mee_nr_skipped_exons <-
-              draw_one_sample_safely(2:mee_max_skipped_exons)
+              .draw_one_sample_safely(2:mee_max_skipped_exons)
             min_nr_exons_per_event['mes'] <-
               mee_nr_skipped_exons + 2
           }
 
           # assign the chunks with as events to the exon_vector
           event_exons <-
-            assign_events(exon_vector_tmp, min_nr_exons_per_event[all_events_tmp])
+            .assign_events(exon_vector_tmp, min_nr_exons_per_event[all_events_tmp])
 
           if ('mee' %in% all_events) {
-            exon_vector[draw_one_sample_safely(names(event_exons$mee)[2:3])] <- F
+            exon_vector[.draw_one_sample_safely(names(event_exons$mee)[2:3])] <- F
           }
 
           if ('a3' %in% all_events) {
             a3_index <- as.integer(names(event_exons[['a3']][2]))
             new_a3 <-
-              draw_one_sample_safely((start(orig_template)[a3_index] + 1):(end(orig_template)[a3_index] - 1))
+              .draw_one_sample_safely((start(orig_template)[a3_index] + 1):(end(orig_template)[a3_index] - 1))
           }
 
           if ('a5' %in% all_events) {
@@ -251,21 +270,21 @@ create_splicing_variants_and_annotation <-
             if (!is.null(event_exons[['a3']]) &&
                 a5_index == a3_index) {
               new_a5 <- ifelse(neg_strand,
-                                draw_one_sample_safely((start(orig_template)[a5_index] + 1):(new_a3 - 1)),
-                                draw_one_sample_safely((new_a3 + 1):(end(orig_template)[a5_index] - 1)))
+                                .draw_one_sample_safely((start(orig_template)[a5_index] + 1):(new_a3 - 1)),
+                                .draw_one_sample_safely((new_a3 + 1):(end(orig_template)[a5_index] - 1)))
             }
             else
-              new_a5 <- draw_one_sample_safely((start(orig_template)[a5_index] + 1):(end(orig_template)[a5_index] - 1))
+              new_a5 <- .draw_one_sample_safely((start(orig_template)[a5_index] + 1):(end(orig_template)[a5_index] - 1))
           }
 
           template <- orig_template[exon_vector]
           S4Vectors::mcols(template)[c('tr_start', 'tr_end')] <-
-                  get_transcriptomic_coord(IRanges::width(template))
+                  .get_transcriptomic_coord(IRanges::width(template))
 
 
           variants_and_event_annotation <- lapply(event_combs, function(comb) {
             ### create splice variants ----
-            variant <- orig_template[apply_exon_events(exon_vector, comb, event_exons)]
+            variant <- orig_template[.apply_exon_events(exon_vector, comb, event_exons)]
             if ('a3' %in% comb) {
               if (neg_strand) end(variant[variant$gene_exon_number == a3_index]) <- new_a3
               else start(variant[variant$gene_exon_number == a3_index]) <- new_a3
@@ -284,7 +303,7 @@ create_splicing_variants_and_annotation <-
             variant$transcript_id <- sprintf('%s_%s', gene_id, paste(comb, collapse = ","))
             variant$template <- F
             S4Vectors::mcols(variant)[c('tr_start', 'tr_end')] <-
-              get_transcriptomic_coord(IRanges::width(variant))
+              .get_transcriptomic_coord(IRanges::width(variant))
 
             ### create event annotation ----
             event_annotation <- data.table::data.table(
@@ -467,7 +486,7 @@ create_splicing_variants_and_annotation <-
             }
 
             ### add transcript line ----
-            list(event_annotation = event_annotation, variant = add_transcript_and_junction_lines(variant))
+            list(event_annotation = event_annotation, variant = .add_transcript_and_junction_lines(variant))
           })
 
           variants_and_event_annotation <- unlist(variants_and_event_annotation, recursive = F)
@@ -478,7 +497,7 @@ create_splicing_variants_and_annotation <-
           return(list(
             event_annotation = event_annotation,
             variants = c(
-              add_gene_line(orig_template, add_transcript_and_junction_lines(template)),
+              .add_gene_line(orig_template, .add_transcript_and_junction_lines(template)),
               variants
             )
           ))

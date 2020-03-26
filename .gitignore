@@ -7,3 +7,12 @@
 packrat/lib*/
 ensembl/*
 outdir*/*
+.Rhistory
+.DS_Store
+vignettes/polyester.md
+plots/*
+vignettes/chr22_small.fa
+vignettes/empirical_reads
+vignettes/simulated_reads
+vignettes/timecourse_reads
+vignettes/polyester.html

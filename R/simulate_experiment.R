@@ -1,58 +1,117 @@
-.check_parameters = function(args) {
-  if (is.null(args$exon_junction_coverage)) {
-    args$exon_junction_coverage = T
-  }
-  if (is.null(args$error_rate)) {
-    args$error_rate = 0
-  }
-  if (is.null(args$strand_specific)) {
-    args$strand_specific = T
-  }
-  if (is.null(args$gzip)) {
-    args$gzip = T
-  }
-  if (is.null(args$shuffle)) {
-    args$shuffle = T
-  }
-  if (is.null(args$fastq)) {
-    args$fastq = T
-  }
-  if (is.null(args$readlen)) {
-    args$readlen = 150
-  }
-  if (is.null(args$write_gff)) {
-    args$write_gff = T
-  }
-
-  return(args)
+.makepretty = function(x){
+    msg = gsub('\n', ' ', x)
+    msg = gsub('    ', '', msg)
+    msg
 }
 
-.check_event_probs <- function(event_probs){
-  as_names = c('a3', 'a5', 'ir', 'es', 'ale', 'afe', 'mee', 'mes')
-  if (is.list(event_probs))
-    event_probs = unlist(event_probs)
-  if (is.numeric(event_probs)) {
-    if (any(event_probs < 0 | event_probs > 1) || is.null(names(event_probs)))
-      stop('Event probabilites have to be provided as named list/vector and each entry must be a probability.')
-    names(event_probs) = tolower(names(event_probs))
-    split = unique(unlist(strsplit(names(event_probs), ',', fixed = T)))
-    if (any(!split %in% as_names))
-      stop('Please provide the alternative splicing event names comma-separated per probability.')
-    return(event_probs)
-  } else stop('Event probabilites have to be provided as named list/vector and each entry must be a probability.')
+.check_error_model = function(extras, paired){
+
+    # make sure it's an available model
+    error_model = match.arg(extras$error_model,
+        c('uniform', 'illumina4', 'illumina5', 'custom'))
+
+    # check uniform model --> error rate
+    if(error_model == 'uniform'){
+        if('error_rate' %in% names(extras)){
+            error_rate = extras$error_rate
+            stopifnot(is.numeric(error_rate))
+            stopifnot(error_rate >= 0 & error_rate <= 1)
+        }
+    }
+
+    # check paths and such for custom model
+    if(error_model == 'custom'){
+        if(!('model_path' %in% names(extras)) |
+            !('model_prefix' %in% names(extras))){
+            stop(.makepretty('with custom error models, you must provide both
+                the path to the folder that holds your error model
+                (model_path) and the prefix of your error model (model_prefix),
+                where the prefix is whatever comes before _mate1 and _mate2
+                (for paired reads) or _single (for single-end reads). You
+                provided prefix when running build_error_models.py.'))
+        }
+        model_path = extras$model_path
+        model_prefix = extras$model_prefix
+        if(paired){
+            if(!file.exists(sprintf("%s/%s_mate1", model_path, model_prefix)) |
+               !file.exists(sprintf("%s/%s_mate2", model_path, model_prefix))){
+               stop('could not find error model')
+            }
+        }else{
+            if(!file.exists(sprintf("%s/%s_single", model_path, model_prefix))){
+                stop('could not find error model')
+            }
+        }
+    }
 }
+
+.check_fold_changes = function(fold_changes, num_reps, transcripts){
+
+    # make sure fold change matrix is compatible with experiment size
+    if(length(num_reps) == 1 | length(num_reps) == 2){
+        stopifnot(is.numeric(fold_changes))
+    }else{
+        stopifnot(is.matrix(fold_changes))
+        if(ncol(fold_changes) != length(num_reps)){
+            stop(.makepretty('wrong number of columns in fold change matrix:
+                need same number of columns as number of groups.'))
+        }
+        if(nrow(fold_changes) != length(transcripts)){
+            stop(.makepretty('wrong number of rows in fold change matrix: need
+                same number of rows as number of simulated transcripts. see
+                count_transcripts to find out that number.'))
+        }
+    }
+}
+
+.write_info = function(extras, transcripts, num_reps, fold_changes, outdir,
+    group_ids, counts_matrix){
+
+    if(!('transcriptid' %in% names(extras))){
+        extras$transcriptid = names(transcripts)
+    }
+
+    if(is.numeric(fold_changes)){
+        sim_info = data.frame(transcriptid=extras$transcriptid,
+            foldchange=fold_changes, DEstatus=fold_changes!=1)
+    }else{
+        fcv = apply(fold_changes, 1, function(x){
+            paste(x, collapse=';')
+        })
+        DEstatus = rowSums(fold_changes) != ncol(fold_changes)
+        sim_info = data.frame(transcriptid=extras$transcriptid,
+            foldchange=fcv, DEstatus=DEstatus)
+    }
+
+    write.table(sim_info, row.names=FALSE, quote=FALSE, sep="\t",
+            file=sprintf('%s/sim_tx_info.txt', outdir))
+
+    rep_info = data.frame(
+        rep_id=paste0('sample_', sprintf('%02d', 1:sum(num_reps))),
+        group=group_ids, lib_sizes=extras$lib_sizes)
+
+    write.table(rep_info, row.names=FALSE, quote=FALSE, sep='\t',
+                file=sprintf('%s/sim_rep_info.txt', outdir))
+
+    rownames(counts_matrix) <- names(transcripts)
+    colnames(counts_matrix) <- rep_info$rep_id
+    save(counts_matrix, file=sprintf('%s/sim_counts_matrix.rda', outdir))
+}
+
 
 #' simulate RNA-seq experiment using negative binomial model
 #'
 #' create FASTA files containing RNA-seq reads simulated from provided
 #'   transcripts, with optional differential expression between two groups
-#' @param gtf_path path to GTF file containing transcript structures from which
-#'   splice variants will be created. See details.
+#' @param fasta path to FASTA file containing transcripts from which to simulate
+#'   reads. See details.
+#' @param gtf path to GTF file containing transcript structures from which reads
+#'   should be simulated. See details.
 #' @param seqpath path to folder containing one FASTA file (\code{.fa}
 #'   extension) for each chromosome in \code{gtf}. See details.
-#' @param outdir character, path to folder where simulated reads and all
-#'   annotations should be written, with *no* slash at the end. By default,
-#'   reads are written to current working directory.
+#' @param outdir character, path to folder where simulated reads should be
+#'   written, with *no* slash at the end. By default, reads are
+#'   written to current working directory.
 #' @param num_reps How many biological replicates should be in each group? The
 #'   length \code{num_reps} determines how many groups are in the experiment.
 #'   For example, \code{num_reps = c(5,6,5)} specifies a 3-group experiment with
@@ -222,7 +281,7 @@
 #'   \code{attributes} column of \code{gtf}, how are attributes separated?
 #'   Default \code{"; "}.
 #'   \item \code{shuffle}: should the reads be shuffled before written to file?
-#'   Default \code{TRUE}.
+#'   Default \code{FALSE}.
 #'   }
 #'
 #' @references
@@ -238,141 +297,190 @@
 #'   error-model based simulator of next-generation sequencing data. BMC
 #'   Genomics 13(1), 74.
 #'
-#' @return No return, but simulated reads, a simulation info file,
-#'   an alternative splicing event annotation and exon and junction coverages are written
+#' @return No return, but simulated reads and a simulation info file are written
 #'   to \code{outdir}. Note that reads are written out transcript by transcript
 #'   and so need to be shuffled if used as input to quantification algorithms such
 #'   as eXpress or Salmon.
 #'
-#' @export
 #'
 #' @examples \donttest{
+#'   ## simulate a few reads from chromosome 22
+#'
+#'   fastapath = system.file("extdata", "chr22.fa", package="polyester")
+#'   numtx = count_transcripts(fastapath)
+#'   set.seed(4)
+#'   fold_change_values = sample(c(0.5, 1, 2), size=2*numtx,
+#'      prob=c(0.05, 0.9, 0.05), replace=TRUE)
+#'   fold_changes = matrix(fold_change_values, nrow=numtx)
+#'   library(Biostrings)
+#'   # remove quotes from transcript IDs:
+#'   tNames = gsub("'", "", names(readDNAStringSet(fastapath)))
+#'
+#'   simulate_experiment(fastapath, reads_per_transcript=10,
+#'      fold_changes=fold_changes, outdir='simulated_reads',
+#'      transcriptid=tNames, seed=12)
 #'}
-#' @import data.table
-simulate_alternative_splicing =
-  function(gtf_path,
-           event_probs,
-           seqpath,
-           outdir,
-           ncores = 1L,
-           ...)
-  {
-    args = .check_parameters(list(...))
-    event_probs = .check_event_probs(event_probs)
+#'
+simulate_experiment = function(fasta=NULL, gtf=NULL, seqpath=NULL,
+    outdir='.', num_reps=c(10,10), reads_per_transcript=300, size=NULL,
+    fold_changes, paired=TRUE, reportCoverage=FALSE, ncores=1L, ...){
 
+    extras = list(...)
+
+    # validate extra arguments/set sane defaults
+    extras = .check_extras(extras, paired, total.n=sum(num_reps))
+
+    # read in the annotated transcripts to sequence from
+    if(!is.null(fasta) & is.null(gtf) & is.null(seqpath)){
+        transcripts = readDNAStringSet(fasta)
+    }else if(is.null(fasta) & !is.null(gtf) & !is.null(seqpath)){
+        message('parsing gtf and sequences...')
+        # parse out any extra seq_gtf arguments from the ... args
+        if('exononly' %in% names(extras)){
+            exononly = extras$exononly
+        }else{
+            exononly = TRUE
+        }
+        if('idfield' %in% names(extras)){
+            idfield = extras$idfield
+        }else{
+            idfield = 'transcript_id'
+        }
+        if('attrsep' %in% names(extras)){
+            attrsep = extras$attrsep
+        }else{
+            attrsep = '; '
+        }
+        transcripts = seq_gtf(gtf, seqpath, feature='transcript',
+            exononly=exononly, idfield=idfield, attrsep=attrsep)
+        message('done parsing')
+    }else{
+        stop('must provide either fasta or both gtf and seqpath')
+    }
+
+    # If for some reason the names of the transcripts are missing,
+    # add dummy transcript names so the user can follow from which
+    # transcript each read is generated
+    if (is.null(names(transcripts))) {
+      warning(.makepretty('the provided transcripts have missing names;
+              adding dummy names'))
+      num_trans <- length(transcripts)
+      digits <- nchar(num_trans)
+      format <- paste0("%s%0", digits, "d")
+      names(transcripts) <- sprintf(format, "transcript", 1:num_trans)
+    }
+
+    # check fold change matrix dimensions:
+    .check_fold_changes(fold_changes, num_reps, transcripts)
+
+    # get baseline means for each group, incl. fold changes:
+    if('meanmodel' %in% names(extras)){
+        b0 = -3.0158
+        b1 = 0.8688
+        sigma = 4.152
+        logmus = b0 + b1*log2(width(transcripts)) + rnorm(length(transcripts),0,sigma)
+        reads_per_transcript = 2^logmus-1
+        reads_per_transcript = pmax( reads_per_transcript, 1e-6 )
+    }
+
+    if(length(num_reps) == 1){
+        fold_changes = matrix(rep(1, length(transcripts)))
+        basemeans = reads_per_transcript * fold_changes
+    } else if(length(num_reps) == 2) {
+        # This means fold_changes is a numeric vector, per the check function
+        if(length(reads_per_transcript) == 1) {
+            basemeans = matrix(reads_per_transcript, ncol=2, nrow=length(transcripts))
+            basemeans[,2] = fold_changes * basemeans[,1]
+        } else if(length(reads_per_transcript) == length(transcripts)){
+            basemeans = matrix(c(reads_per_transcript, reads_per_transcript), nrow=length(reads_per_transcript))
+            basemeans = basemeans*fold_changes
+        } else {
+            stop('reads_per_transcript is the wrong length.')
+        }
+    } else {
+        basemeans = reads_per_transcript * fold_changes
+    }
+
+    if(is.null(size)){
+        size = basemeans / 3
+    }else if(class(size) == 'numeric'){
+        if(is.matrix(basemeans)){
+            num_rows = nrow(basemeans)
+            num_cols = ncol(basemeans)
+        } else {
+            num_rows = length(basemeans)
+            num_cols = 1
+        }
+        size = matrix(size, nrow=num_rows, ncol=num_cols)
+    }else if(class(size) == 'matrix'){
+        if(!is.matrix(basemeans)){
+            stop('If you provide a matrix for size, you also need a matrix for reads_per_transcript.')
+        }
+        stopifnot(nrow(size) == nrow(basemeans))
+        stopifnot(ncol(size) == ncol(basemeans))
+    }else{
+        stop('size must be a number, numeric vector, or matrix.')
+    }
 
     # Store the current random number generator to restore at the end
     # Changing to L'Ecuyer-CMRG allows for reproducibility for parallel runs
     # See ?parallel::mc.parallel for more information
-    old_rng = RNGkind()
-    RNGkind("L'Ecuyer-CMRG")
-    if (is.null(args$seed)) {
-      args$seed = 142 # allows any run to be reproducible
+    # old_rng <- RNGkind()
+    # RNGkind("L'Ecuyer-CMRG")
+    # if('seed' %in% names(extras)){
+    #     set.seed(extras$seed)
+    # } else {
+    #     set.seed(142) # allows any run to be reproducible
+    # }
+    # create matrix of transcripts & number of reads to simulate
+    group_ids = rep(1:length(num_reps), times=num_reps)
+    numreadsList = vector("list", sum(num_reps))
+    numreadsList = lapply(1:sum(num_reps), function(i){
+        group_id = group_ids[i]
+        NB(as.matrix(basemeans)[,group_id], as.matrix(size)[,group_id])
+    })
+    readmat = matrix(unlist(numreadsList), ncol=sum(num_reps))
+    readmat = t(extras$lib_sizes * t(readmat))
+    if('gcbias' %in% names(extras)){
+        stopifnot(length(extras$gcbias) == sum(num_reps))
+        gcclasses = sapply(extras$gcbias, class)
+        if(! all(gcclasses %in% c('numeric', 'loess'))){
+            stop(.makepretty('gc bias parameters must be integers 0 through 7
+                or loess objects'))
+        }
+        if(any(extras$gcbias!=0)){
+            readmat = add_gc_bias(readmat, extras$gcbias, transcripts)
+        }
     }
-    set.seed(args$seed)
-    data.table::setDTthreads(ncores)
-    args$ncores = ncores
 
-    # prep output directory
-    outdir = gsub(' ', '\\\\ ', outdir)
-    if (.Platform$OS.type == 'windows') {
-      shell(paste('mkdir', outdir))
-    } else {
-      system(paste('mkdir -p', outdir))
+    # CHANGE # prep output directory
+    # sysoutdir = gsub(' ', '\\\\ ', outdir)
+    # if(.Platform$OS.type == 'windows'){
+    #     shell(paste('mkdir', sysoutdir))
+    # }else{
+    #     system(paste('mkdir -p', sysoutdir))
+    # }
+
+    # do the actual sequencing
+    sgseq(readmat, transcripts, paired, outdir, extras, reportCoverage, ncores=ncores)
+
+    # write out simulation information, if asked for:
+    if(!('write_info' %in% names(extras))){
+        write_info=TRUE
     }
 
-    #TODO: check event_probs
-
-    ### create the splice variants for every event ----
-    # extras$max_genes <- 100
-    # extras$ncores <- 40
-
-    valid_chromosomes = sub('.fa', '', list.files(seqpath))
-
-    variants = create_splicing_variants_and_annotation(
-      gtf_path,
-      valid_chromosomes,
-      event_probs,
-      outdir,
-      args$ncores,
-      args$write_gff,
-      args$max_genes
-    )
-
-    #TODO: make the transcript expression
-    nr_transcripts = length(unique(variants$transcript_id))
-    if (is.null(args$fold_changes)) {
-      args$fold_changes =
-        matrix(c(
-          rep(2, 2),
-          rep(1, nr_transcripts - 2),
-          rep(1, 2),
-          rep(4, 2),
-          rep(1, nr_transcripts - 4)
-        ),
-        nrow = nr_transcripts)
+    if(write_info){
+      # save the *unbiased* counts matrix: the counts for each
+      # transcript and each sample *before* fragment GC bias is applied
+      counts_matrix <- readmat
+      .write_info(extras, transcripts, num_reps, fold_changes, outdir,
+                  group_ids, counts_matrix)
     }
-    if (is.null(args$reads_per_transcript)) {
-      args$reads_per_transcript = rep(300, nr_transcripts)
-    } else if (length(args$reads_per_transcript) == 1) {
-      args$reads_per_transcript =
-        rep(args$reads_per_transcript, nr_transcripts)
-    }
-    if (args$exon_junction_coverage) {
-      args$exon_junction_table = variants[, ID := .I]
-    } else {
-      args$exon_junction_table = NULL
-    }
-    args$gtf = file.path(outdir, 'splicing_variants.gtf')
-    args$seqpath = seqpath
-    args$outdir = outdir
-
-    ### simulate with polyester----
-    message('start simulation with polyester:')
-    do.call(simulate_experiment, args)
-
-    ### make statistics ----
-    # create_exon_junction_resolution(outdir,
-    #                                 variants_annotation$variants,
-    #                                 variants_annotation$event_annotation,
-    #                                 extras$readlen,
-    #                                 extras$nr_cores)
-    #
 
     # Restore whatever RNG the user had set before running this function
-    RNGkind(old_rng[1], old_rng[2])
-    invisible(NULL)
-  }
+    # RNGkind(old_rng[1], old_rng[2])
+}
 
+# simulate_experiment(fastapath, reads_per_transcript=10, outdir='~/Desktop/tmp', num_reps=1)
+# simulate_experiment(fastapath, reads_per_transcript=10, outdir='~/Desktop/tmp', num_reps=c(1,1), fold_changes=fc2[,2:3])
 
-# ### debugging ----
-# ncores <- 40
-# gtf_path <-
-#   '/nfs/proj/Sys_CARE/AS_Simulator/ensembl_data/Homo_sapiens.GRCh38.99.gtf'
-# event_probs <-
-#   setNames(
-#     list(0.5, 0.1, 0.1, 0.1, 0.1, 0.1, 0.1, 0.1, 0.1),
-#     c(
-#       'es',
-#       'mes',
-#       'ir',
-#       'a3',
-#       'a5',
-#       'afe',
-#       'ale',
-#       'mee',
-#       'ale,afe,mee,ir,mes,a3,es,a5'
-#     )
-#   )
-# seqpath <-
-#   '/nfs/proj/Sys_CARE/AS_Simulator/ensembl_data/Homo_sapiens.GRCh38.99.fa'
-# outdir <- '/nfs/home/students/ga89koc/hiwi/as_simulator/outdir_small'
-#
-# exon_junction_resolution <- simulate_alternative_splicing(
-#   gtf_path = gtf_path,
-#   max_genes = 100,
-#   seqpath = seqpath,
-#   event_probs = event_probs,
-#   outdir = outdir,
-#   ncores = ncores
-# )
