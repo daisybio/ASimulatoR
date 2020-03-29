@@ -107,12 +107,13 @@
   return(v)
 }
 
+
 #' Internal function to create alternative splicing events
 #'
 #' This is not intended to be called directly;
 #' instead it is meant to be called via \code{\link{simulate_alternative_cplicing}}
 #'
-#' @param gtf_path path to gtf from which exon_supersets are created
+#' @param gtf_path
 #' @param valid_chromosomes
 #' @param event_probs
 #' @param outdir
@@ -120,13 +121,10 @@
 #'   of splice variants.
 #' @param write_gff
 #' @param max_genes
+#' @param exon_junction_coverage
 #'
-#' @return the exons, junctions and retained introns as data table in gtf style
-#' @import data.table
-#' @importFrom parallel mclapply
-#' @importFrom methods as
-#' @importFrom stats runif setNames
-#' @importFrom rtracklayer import export
+#' @return if \code{exon_junction_coverage = TRUE} the exons, junctions and retained introns as data table in gtf style
+#'
 create_splicing_variants_and_annotation <-
   function(gtf_path,
            valid_chromosomes,
@@ -134,69 +132,21 @@ create_splicing_variants_and_annotation <-
            outdir,
            ncores,
            write_gff,
-           max_genes) {
+           max_genes,
+           exon_junction_coverage) {
 
     ### create exon_superset ----
-    if (file.exists(paste0(gtf_path, '.exon_superset.rda'))) {
-      message('loading superset...')
-      load(paste0(gtf_path, '.exon_superset.rda'))
-      exon_supersets <-
-        exon_supersets[as.character(sapply(exon_supersets, function(g)
-          S4Vectors::runValue(GenomeInfoDb::seqnames(g))))
-          %in% valid_chromosomes]
-      message('finished loading superset')
-      message('')
-    } else {
-      message('importing gtf...')
-      exon_supersets <- rtracklayer::import(gtf_path)
-      message('finished importing gtf')
-      message('')
+    exon_supersets <- get_exon_supersets(gtf_path, valid_chromosomes, ncores)
 
-      exon_supersets <-
-        exon_supersets[GenomeInfoDb::seqnames(exon_supersets) %in% valid_chromosomes &
-                         exon_supersets$type == 'exon']
-      exon_supersets <-
-        split(exon_supersets, exon_supersets$gene_id)
-
-      message('creating superset...')
-
-      exon_supersets <- parallel::mclapply(exon_supersets, function(gene) {
-        template <- GenomicRanges::reduce(gene)
-        neg_strand <- S4Vectors::runValue(GenomicRanges::strand(gene)) == '-'
-        if (neg_strand) template <- rev(template)
-        gene_id <- gene$gene_id[1]
-        transcript_id <- sprintf('%s_template', gene_id)
-        S4Vectors::mcols(template) <-
-          cbind(
-            S4Vectors::DataFrame(
-              source = "as_simulator",
-              type = "exon",
-              score = ".",
-              phase = ".",
-              gene_id = gene_id,
-              transcript_id = transcript_id,
-              template = T,
-              gene_exon_number = 1L:length(template)
-            ),
-            .get_transcriptomic_coord(IRanges::width(template))
-          )
-        template
-      }, mc.cores = ncores)
-      message('finished creating superset')
-      message('')
-
-      message('saving superset...')
-      save(exon_supersets, file = paste0(gtf_path, '.exon_superset.rda'))
-      message('finished saving superset')
-      message('')
-    }
-
-    #TODO: exclude one exon genes
 
     gene_lengths <- sapply(exon_supersets, length)
+
+    #exclude one exon genes
     multiple_exon_supersets <- exon_supersets[names(gene_lengths)[gene_lengths != 1]]
 
-    shuffled_exon_supersets <-
+    #nr_genes <- min(length(multiple_exon_supersets), max_genes)
+    #all_probs <- matrix(runif(max_genes * length(event_probs)), nrow = nr_genes)
+    shuffled_exon_supersets <- #multiple_exon_supersets
       sample(multiple_exon_supersets, min(length(multiple_exon_supersets), max_genes))
 
     ### create splice variants and annotation ----
@@ -532,6 +482,6 @@ create_splicing_variants_and_annotation <-
     message('finished exporting event_annotation...')
     message('')
 
-
-    return(data.table::as.data.table(variants)[type != 'gene' & type != 'transcript'])
+    if (exon_junction_coverage) return(data.table::as.data.table(variants)[type != 'gene' & type != 'transcript'])
+    else invisible(NULL)
   }

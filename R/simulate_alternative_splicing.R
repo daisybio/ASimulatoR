@@ -247,7 +247,7 @@
 #' @export
 #'
 #' @examples \donttest{
-#'}
+#' }
 #' @import data.table
 simulate_alternative_splicing =
   function(gtf_path,
@@ -289,18 +289,20 @@ simulate_alternative_splicing =
 
     valid_chromosomes = sub('.fa', '', list.files(seqpath))
 
-    variants = create_splicing_variants_and_annotation(
+    #TODO: add return null if exon_junction_coverage is FALSE
+    args$exon_junction_table = create_splicing_variants_and_annotation(
       gtf_path,
       valid_chromosomes,
       event_probs,
       outdir,
       args$ncores,
       args$write_gff,
-      args$max_genes
+      args$max_genes,
+      args$exon_junction_coverage
     )
 
     #TODO: make the transcript expression
-    nr_transcripts = length(unique(variants$transcript_id))
+    nr_transcripts = length(unique(args$exon_junction_table$transcript_id))
     if (is.null(args$fold_changes)) {
       args$fold_changes =
         matrix(c(
@@ -317,11 +319,6 @@ simulate_alternative_splicing =
     } else if (length(args$reads_per_transcript) == 1) {
       args$reads_per_transcript =
         rep(args$reads_per_transcript, nr_transcripts)
-    }
-    if (args$exon_junction_coverage) {
-      args$exon_junction_table = variants[, ID := .I]
-    } else {
-      args$exon_junction_table = NULL
     }
     args$gtf = file.path(outdir, 'splicing_variants.gtf')
     args$seqpath = seqpath

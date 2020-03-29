@@ -11,19 +11,18 @@ create_splicing_variants_and_annotation(
   outdir,
   ncores,
   write_gff,
-  max_genes
+  max_genes,
+  exon_junction_coverage
 )
 }
 \arguments{
-\item{gtf_path}{path to gtf from which exon_supersets are created}
-
 \item{ncores}{the number of cores to be utilized for parallel generation
 of splice variants.}
 
-\item{max_genes}{}
+\item{exon_junction_coverage}{}
 }
 \value{
-the exons, junctions and retained introns as data table in gtf style
+if \code{exon_junction_coverage = TRUE} the exons, junctions and retained introns as data table in gtf style
 }
 \description{
 This is not intended to be called directly;

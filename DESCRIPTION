@@ -1,17 +1,18 @@
 Package: ass
 Version: 0.0.0.9000
 Date: 2020-01-01
-Title: My First Collection of Functions
-Authors@R: c(person("Joe", "Developer", role = c("aut", "cre"),
-                     email = "Joe.Developer@some.domain.net"),
-              person("Pat", "Developer", role = "aut"),
-              person("A.", "User", role = "ctb",
-                     email = "A.User@whereever.net"))
+Title: Alternative Splicing Simulator
+Authors@R: c(person("Quirin", "Developer", role = c("aut", "cre"),
+                     email = "qu.manz@tum.de"),
+              person("Amit", "Author", role = "aut",
+                     email = "amit.fenn@wzw.tum.de"),
+              person("Olga", "Author", role = "aut",
+                     email = "olga.tsoy@wzw.tum.de"))
 Author: Amit Fenn, Quirin Manz, Olga Tsoy
 Maintainer: Quirin Manz <qu.manz@tum.de>
-Depends: R (>= 3.6.1), data.table, rtracklayer, Biostrings, IRanges, S4Vectors, limma, logspline, methods
-Description: A (one paragraph) description of what
-  the package does and why it may be useful.
+Depends: R (>= 3.6.1), rtracklayer, data.table (>= 1.9.8)
+Remotes: quirinmanz/polyester
+Description: Simulates RNA-Seq experiments with alternative splice variants using the polyester R package.
 License: GPL (>= 2)
 URL: https://www.r-project.org, http://www.another.url
 BugReports: https://pkgname.bugtracker.url
