@@ -9,7 +9,7 @@
 #' @examples
 get_exon_supersets <-
   function(gtf_path, valid_chromosomes, ncores) {
-    exon_supersets_path <- sprintf('%s..exon_superset.rda')
+    exon_supersets_path <- sprintf('%s.exon_superset.rda', gtf_path)
     if (file.exists(exon_supersets_path)) {
       message('loading superset...')
       load(exon_supersets_path)

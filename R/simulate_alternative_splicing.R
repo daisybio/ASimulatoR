@@ -1,41 +1,45 @@
-.check_parameters = function(args) {
+.check_parameters <- function(args) {
+  #TODO: check if they are the right class?
   if (is.null(args$exon_junction_coverage)) {
-    args$exon_junction_coverage = T
+    args$exon_junction_coverage <- T
   }
   if (is.null(args$error_rate)) {
-    args$error_rate = 0
+    args$error_rate <- 0
   }
   if (is.null(args$strand_specific)) {
-    args$strand_specific = T
+    args$strand_specific <- T
   }
   if (is.null(args$gzip)) {
-    args$gzip = T
+    args$gzip <- T
   }
   if (is.null(args$shuffle)) {
-    args$shuffle = T
+    args$shuffle <- T
   }
   if (is.null(args$fastq)) {
-    args$fastq = T
+    args$fastq <- T
   }
   if (is.null(args$readlen)) {
-    args$readlen = 150
+    args$readlen <- 150
   }
   if (is.null(args$write_gff)) {
-    args$write_gff = T
+    args$write_gff <- T
+  }
+  if (is.null(args$multi_events_per_exon)) {
+    args$multi_events_per_exon <- F
   }
 
   return(args)
 }
 
 .check_event_probs <- function(event_probs){
-  as_names = c('a3', 'a5', 'ir', 'es', 'ale', 'afe', 'mee', 'mes')
+  as_names <- c('a3', 'a5', 'ir', 'es', 'ale', 'afe', 'mee', 'mes')
   if (is.list(event_probs))
-    event_probs = unlist(event_probs)
+    event_probs <- unlist(event_probs)
   if (is.numeric(event_probs)) {
     if (any(event_probs < 0 | event_probs > 1) || is.null(names(event_probs)))
       stop('Event probabilites have to be provided as named list/vector and each entry must be a probability.')
-    names(event_probs) = tolower(names(event_probs))
-    split = unique(unlist(strsplit(names(event_probs), ',', fixed = T)))
+    names(event_probs) <- tolower(names(event_probs))
+    split <- unique(unlist(strsplit(names(event_probs), ',', fixed = T)))
     if (any(!split %in% as_names))
       stop('Please provide the alternative splicing event names comma-separated per probability.')
     return(event_probs)
@@ -249,7 +253,7 @@
 #' @examples \donttest{
 #' }
 #' @import data.table
-simulate_alternative_splicing =
+simulate_alternative_splicing <-
   function(gtf_path,
            event_probs,
            seqpath,
@@ -257,40 +261,35 @@ simulate_alternative_splicing =
            ncores = 1L,
            ...)
   {
-    args = .check_parameters(list(...))
-    event_probs = .check_event_probs(event_probs)
+    args <- .check_parameters(list(...))
+    event_probs <- .check_event_probs(event_probs)
 
 
     # Store the current random number generator to restore at the end
     # Changing to L'Ecuyer-CMRG allows for reproducibility for parallel runs
     # See ?parallel::mc.parallel for more information
-    old_rng = RNGkind()
+    old_rng <- RNGkind()
     RNGkind("L'Ecuyer-CMRG")
     if (is.null(args$seed)) {
-      args$seed = 142 # allows any run to be reproducible
+      args$seed <- 142 # allows any run to be reproducible
     }
     set.seed(args$seed)
     data.table::setDTthreads(ncores)
-    args$ncores = ncores
+    args$ncores <- ncores
 
     # prep output directory
-    outdir = gsub(' ', '\\\\ ', outdir)
+    outdir <- gsub(' ', '\\\\ ', outdir)
     if (.Platform$OS.type == 'windows') {
       shell(paste('mkdir', outdir))
     } else {
       system(paste('mkdir -p', outdir))
     }
 
-    #TODO: check event_probs
-
     ### create the splice variants for every event ----
-    # extras$max_genes <- 100
-    # extras$ncores <- 40
-
-    valid_chromosomes = sub('.fa', '', list.files(seqpath))
+    valid_chromosomes <- sub('.fa', '', list.files(seqpath))
 
     #TODO: add return null if exon_junction_coverage is FALSE
-    args$exon_junction_table = create_splicing_variants_and_annotation(
+    args$exon_junction_table <- create_splicing_variants_and_annotation(
       gtf_path,
       valid_chromosomes,
       event_probs,
@@ -298,13 +297,14 @@ simulate_alternative_splicing =
       args$ncores,
       args$write_gff,
       args$max_genes,
-      args$exon_junction_coverage
+      args$exon_junction_coverage,
+      args$multi_events_per_exon
     )
 
     #TODO: make the transcript expression
-    nr_transcripts = length(unique(args$exon_junction_table$transcript_id))
+    nr_transcripts <- length(unique(args$exon_junction_table$transcript_id))
     if (is.null(args$fold_changes)) {
-      args$fold_changes =
+      args$fold_changes <-
         matrix(c(
           rep(2, 2),
           rep(1, nr_transcripts - 2),
@@ -315,26 +315,15 @@ simulate_alternative_splicing =
         nrow = nr_transcripts)
     }
     if (is.null(args$reads_per_transcript)) {
-      args$reads_per_transcript = rep(300, nr_transcripts)
-    } else if (length(args$reads_per_transcript) == 1) {
-      args$reads_per_transcript =
-        rep(args$reads_per_transcript, nr_transcripts)
+      args$meanmodel = T
     }
-    args$gtf = file.path(outdir, 'splicing_variants.gtf')
-    args$seqpath = seqpath
-    args$outdir = outdir
+    args$gtf <- file.path(outdir, 'splicing_variants.gtf')
+    args$seqpath <- seqpath
+    args$outdir <- outdir
 
     ### simulate with polyester----
     message('start simulation with polyester:')
     do.call(simulate_experiment, args)
-
-    ### make statistics ----
-    # create_exon_junction_resolution(outdir,
-    #                                 variants_annotation$variants,
-    #                                 variants_annotation$event_annotation,
-    #                                 extras$readlen,
-    #                                 extras$nr_cores)
-    #
 
     # Restore whatever RNG the user had set before running this function
     RNGkind(old_rng[1], old_rng[2])
@@ -342,34 +331,35 @@ simulate_alternative_splicing =
   }
 
 
-# ### debugging ----
-# ncores <- 40
-# gtf_path <-
-#   '/nfs/proj/Sys_CARE/AS_Simulator/ensembl_data/Homo_sapiens.GRCh38.99.gtf'
-# event_probs <-
-#   setNames(
-#     list(0.5, 0.1, 0.1, 0.1, 0.1, 0.1, 0.1, 0.1, 0.1),
-#     c(
-#       'es',
-#       'mes',
-#       'ir',
-#       'a3',
-#       'a5',
-#       'afe',
-#       'ale',
-#       'mee',
-#       'ale,afe,mee,ir,mes,a3,es,a5'
-#     )
-#   )
-# seqpath <-
-#   '/nfs/proj/Sys_CARE/AS_Simulator/ensembl_data/Homo_sapiens.GRCh38.99.fa'
-# outdir <- '/nfs/home/students/ga89koc/hiwi/as_simulator/outdir_small'
-#
-# exon_junction_resolution <- simulate_alternative_splicing(
-#   gtf_path = gtf_path,
-#   max_genes = 100,
-#   seqpath = seqpath,
-#   event_probs = event_probs,
-#   outdir = outdir,
-#   ncores = ncores
+### debugging/examples ----
+# max_genes = 100
+# params = list(
+#   ncores = 40,
+#   gtf_path =
+#     '/nfs/proj/Sys_CARE/AS_Simulator/ensembl_data/Homo_sapiens.GRCh38.99.gtf',
+#   event_probs =
+#     setNames(
+#       list(0.5, 0.1, 0.1, 0.1, 0.1, 0.1, 0.1, 0.1, 0.1),
+#       c(
+#         'es',
+#         'mes',
+#         'ir',
+#         'a3',
+#         'a5',
+#         'afe',
+#         'ale',
+#         'mee',
+#         'ale,afe,mee,ir,mes,a3,es,a5'
+#       )
+#     ),
+#   seqpath =
+#     '/nfs/proj/Sys_CARE/AS_Simulator/ensembl_data/Homo_sapiens.GRCh38.99.fa',
+#   max_genes = max_genes,
+#   outdir = sprintf(
+#     '/nfs/home/students/ga89koc/hiwi/as_simulator/maxGenes%d',
+#     max_genes
+#   ),
+#   multi_events_per_exon = T
 # )
+#
+# do.call(simulate_alternative_splicing, params)
