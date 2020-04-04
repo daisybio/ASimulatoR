@@ -5,8 +5,7 @@
 .RData
 .Ruserdata
 packrat/lib*/
-ensembl/*
-outdir*/*
+outdir*
 maxGenes*
 .Rhistory
 .DS_Store

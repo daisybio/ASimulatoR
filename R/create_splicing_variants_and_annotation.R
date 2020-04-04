@@ -67,6 +67,7 @@
     event <- .draw_one_sample_safely(min_nr_exons_per_event)
     # does not work
     if (event > length(v)) {
+      browser()
       stop('Error in assign events: Event length is bigger than vector.')
     }
     event_start <- .draw_one_sample_safely(1:(length(v) - event + 1))
@@ -130,199 +131,180 @@
            event_exons,
            exon_vector,
            neg_strand,
-           var_id,
-           var_starts,
-           var_ends,
-           var_tr_starts,
-           var_tr_ends,
-           var_gene_exon_number,
-           temp_id,
-           temp_starts,
-           temp_ends,
-           temp_tr_starts,
-           temp_tr_ends,
-           temp_gene_exon_number) {
+           template,
+           variant) {
 
-  event_annotation <- data.table::data.table(
-    event_annotation = character(),
-    variant = character(),
-    template = character(),
-    genomic_start = integer(),
-    genomic_end = integer(),
-    transcriptomic_start = integer(),
-    transcriptomic_end = integer()
-  )
+    event_annotation <- data.table::data.table(
+      event_annotation = character(),
+      variant = character(),
+      template = character(),
+      genomic_start = integer(),
+      genomic_end = integer(),
+      transcriptomic_start = integer(),
+      transcriptomic_end = integer()
+    )
 
-  #TODO: wrap in function
-  if ('afe' %in% comb) {
-    event_annotation <- data.table::rbindlist(list(
-      event_annotation,
-      list(
-        'afe',
-        var_id,
-        temp_id,
-        var_starts[1],
-        var_ends[1],
-        var_tr_starts[1],
-        var_tr_ends[1]
-      ),
-      list(
-        'afe',
-        temp_id,
-        var_id,
-        temp_starts[1],
-        temp_ends[1],
-        temp_tr_starts[1],
-        temp_tr_ends[1]
-      )
-    ))
+    #TODO: wrap in function
+    if ('afe' %in% comb) {
+      event_annotation <- data.table::rbindlist(list(
+        event_annotation,
+        list(
+          'afe',
+          variant$transcript_id[1],
+          template$transcript_id[1],
+          start(variant[1]),
+          end(variant[1]),
+          variant[1]$tr_start,
+          variant[1]$tr_end
+        ),
+        list(
+          'afe',
+          template$transcript_id[1],
+          variant$transcript_id[1],
+          start(template[1]),
+          end(template[1]),
+          template[1]$tr_start,
+          template[1]$tr_end
+        )
+      ))
+    }
+    if ('ale' %in% comb) {
+      variant_length <- length(variant)
+      template_length <- length(template)
+      event_annotation <- data.table::rbindlist(list(
+        event_annotation,
+        list(
+          'ale',
+          variant$transcript_id[1],
+          template$transcript_id[1],
+          start(variant[variant_length]),
+          end(variant[variant_length]),
+          variant[variant_length]$tr_start,
+          variant[variant_length]$tr_end
+        ),
+        list(
+          'ale',
+          template$transcript_id[1],
+          variant$transcript_id[1],
+          start(template[template_length]),
+          end(template[template_length]),
+          template[template_length]$tr_start,
+          template[template_length]$tr_end
+        )
+      ))
+    }
+    if ('mee' %in% comb) {
+      incl_exons <-
+        list(template = as.integer(names(event_exons$mee)[2]),
+             variant = as.integer(names(event_exons$mee)[3]))
+      if (exon_vector[names(event_exons$mee)[3]]) incl_exons[c(1,2)] <- incl_exons[c(2,1)]
+      variant_exon <- variant[variant$gene_exon_number == incl_exons$variant]
+      template_exon <- template[template$gene_exon_number == incl_exons$template]
+      event_annotation <- data.table::rbindlist(list(
+        event_annotation,
+        list(
+          'mee',
+          variant$transcript_id[1],
+          template$transcript_id[1],
+          start(variant_exon),
+          end(variant_exon),
+          variant_exon$tr_start,
+          variant_exon$tr_end
+        ),
+        list(
+          'mee',
+          template$transcript_id[1],
+          variant$transcript_id[1],
+          start(template_exon),
+          end(template_exon),
+          template_exon$tr_start,
+          template_exon$tr_end
+        )
+      ))
+    }
+    if ('mes' %in% comb) {
+      skipped_exons <- template[template$gene_exon_number %in% as.integer(names((event_exons$mes[-c(1, length(event_exons$mes))])))]
+      event_annotation <- data.table::rbindlist(list(
+        event_annotation,
+        list(
+          'mes',
+          variant$transcript_id[1],
+          template$transcript_id[1],
+          paste(start(skipped_exons), collapse = ','),
+          paste(end(skipped_exons), collapse = ','),
+          paste(skipped_exons$tr_start, collapse = ','),
+          paste(skipped_exons$tr_end, collapse = ',')
+        )
+      ))
+    }
+    if ('es' %in% comb) {
+      skipped_exon <- template[template$gene_exon_number == as.integer(names(event_exons$es[2]))]
+      event_annotation <- data.table::rbindlist(list(
+        event_annotation,
+        list(
+          'es',
+          variant$transcript_id[1],
+          template$transcript_id[1],
+          start(skipped_exon),
+          end(skipped_exon),
+          skipped_exon$tr_start,
+          skipped_exon$tr_end
+        )
+      ))
+    }
+    if ('ir' %in% comb) {
+      ri <- parent.frame()$ri
+      event_annotation <- data.table::rbindlist(list(
+        event_annotation,
+        list(
+          'ir',
+          variant$transcript_id[1],
+          template$transcript_id[1],
+          start(ri),
+          end(ri),
+          ri$tr_start,
+          ri$tr_end
+        )
+      ))
+    }
+    if ('a3' %in% comb) {
+      new_a3 <- parent.frame()$new_a3
+      alt_exon <- template[template$gene_exon_number == parent.frame()$a3_index]
+      old_a3 <- ifelse(neg_strand, end(alt_exon), start(alt_exon))
+      skipped_bases <- abs(old_a3 - new_a3)
+      event_annotation <- data.table::rbindlist(list(
+        event_annotation,
+        list(
+          'a3',
+          variant$transcript_id[1],
+          template$transcript_id[1],
+          ifelse(neg_strand, (new_a3 + 1L), old_a3),
+          ifelse(neg_strand, old_a3, (new_a3 - 1L)),
+          alt_exon$tr_start,
+          alt_exon$tr_start + skipped_bases - 1L
+        )
+      ))
+    }
+    if ('a5' %in% comb) {
+      new_a5 <- parent.frame()$new_a5
+      alt_exon <- template[template$gene_exon_number == parent.frame()$a5_index]
+      old_a5 <- ifelse(neg_strand, start(alt_exon), end(alt_exon))
+      skipped_bases <- abs(old_a5 - new_a5)
+      event_annotation <- data.table::rbindlist(list(
+        event_annotation,
+        list(
+          'a5',
+          variant$transcript_id[1],
+          template$transcript_id[1],
+          ifelse(neg_strand, old_a5, (new_a5 + 1)),
+          ifelse(neg_strand, (new_a5 - 1L), old_a5),
+          alt_exon$tr_start,
+          alt_exon$tr_start + skipped_bases - 1L
+        )
+      ))
+    }
+    event_annotation
   }
-  if ('ale' %in% comb) {
-    variant_length <- length(var_starts)
-    template_length <- length(temp_starts)
-    event_annotation <- data.table::rbindlist(list(
-      event_annotation,
-      list(
-        'ale',
-        var_id,
-        temp_id,
-        var_starts[variant_length],
-        var_ends[variant_length],
-        var_tr_starts[variant_length],
-        var_tr_ends[variant_length]
-      ),
-      list(
-        'ale',
-        temp_id,
-        var_id,
-        temp_starts[template_length],
-        temp_ends[template_length],
-        temp_tr_starts[template_length],
-        temp_tr_ends[template_length]
-      )
-    ))
-  }
-  if ('mee' %in% comb) {
-    incl_exons <-
-      list(template = as.integer(names(event_exons$mee)[2]),
-           variant = as.integer(names(event_exons$mee)[3]))
-    if (exon_vector[names(event_exons$mee)[3]])
-      incl_exons[c(1, 2)] <- incl_exons[c(2, 1)]
-    variant_exon <-
-      var_gene_exon_number[var_gene_exon_number == incl_exons$variant]
-    template_exon <-
-      temp_gene_exon_number[temp_gene_exon_number == incl_exons$template]
-    event_annotation <- data.table::rbindlist(list(
-      event_annotation,
-      list(
-        'mee',
-        var_id,
-        temp_id,
-        var_starts[variant_exon],
-        var_ends[variant_exon],
-        var_tr_starts[variant_exon],
-        var_tr_ends[variant_exon]
-      ),
-      list(
-        'mee',
-        temp_id,
-        var_id,
-        temp_starts[template_exon],
-        temp_ends[template_exon],
-        temp_tr_starts[template_exon],
-        temp_tr_ends[template_exon]
-      )
-    ))
-  }
-  if ('mes' %in% comb) {
-    skipped_exons <-
-      temp_gene_exon_number[temp_gene_exon_number %in% as.integer(names(event_exons$mes[-c(1, length(event_exons$mes))]))]
-    event_annotation <- data.table::rbindlist(list(
-      event_annotation,
-      list(
-        'mes',
-        var_id,
-        temp_id,
-        paste(temp_starts[skipped_exons], collapse = ','),
-        paste(temp_ends[skipped_exons], collapse = ','),
-        paste(temp_tr_starts[skipped_exons], collapse = ','),
-        paste(temp_tr_ends[skipped_exons]$tr_end, collapse = ',')
-      )
-    ))
-  }
-  if ('es' %in% comb) {
-    skipped_exon <-
-      temp_gene_exon_number[temp_gene_exon_number == as.integer(names(event_exons$es[2]))]
-    event_annotation <- data.table::rbindlist(list(
-      event_annotation,
-      list(
-        'es',
-        var_id,
-        temp_id,
-        temp_starts[skipped_exon],
-        temp_ends[skipped_exon],
-        temp_tr_starts[skipped_exon],
-        temp_tr_ends[skipped_exon]
-      )
-    ))
-  }
-  if ('ir' %in% comb) {
-    ri <- parent.frame()$ri
-    event_annotation <- data.table::rbindlist(list(
-      event_annotation,
-      list(
-        'ir',
-        var_id,
-        temp_id,
-        start(ri),
-        end(ri),
-        ri$tr_start,
-        ri$tr_end
-      )
-    ))
-  }
-  if ('a3' %in% comb) {
-    a3_index <- parent.frame()$a3_index
-    new_a3 <- parent.frame()$new_a3
-    alt_exon <- temp_gene_exon_number[temp_gene_exon_number == a3_index]
-    old_a3 <-
-      ifelse(neg_strand, temp_ends[alt_exon], temp_starts[alt_exon])
-    skipped_bases <- abs(old_a3 - new_a3)
-    event_annotation <- data.table::rbindlist(list(
-      event_annotation,
-      list(
-        'a3',
-        var_id,
-        temp_id,
-        ifelse(neg_strand, (new_a3 + 1L), old_a3),
-        ifelse(neg_strand, old_a3, (new_a3 - 1L)),
-        temp_tr_starts[alt_exon],
-        temp_tr_starts[alt_exon] + skipped_bases - 1L
-      )
-    ))
-  }
-  if ('a5' %in% comb) {
-    a5_index <- parent.frame()$a5_index
-    new_a5 <- parent.frame()$new_a5
-    alt_exon <- temp_gene_exon_number[temp_gene_exon_number == a5_index]
-    old_a5 <-
-      ifelse(neg_strand, temp_starts[alt_exon], temp_ends[alt_exon])
-    skipped_bases <- abs(old_a5 - new_a5)
-    event_annotation <- data.table::rbindlist(list(
-      event_annotation,
-      list(
-        'a5',
-        var_id,
-        temp_id,
-        ifelse(neg_strand, old_a5, (new_a5 + 1)),
-        ifelse(neg_strand, (new_a5 - 1L), old_a5),
-        temp_tr_starts[alt_exon],
-        temp_tr_starts[alt_exon] + skipped_bases - 1L
-      )
-    ))
-  }
-  event_annotation
-}
 
 #' Internal function to create alternative splicing events
 #'
@@ -385,7 +367,7 @@ create_splicing_variants_and_annotation <-
     message('create splicing variants and annotation...')
     #TODO: is random number generation ok?
     all_variants_and_event_annotation <-
-      parallel::mclapply(1:nr_genes, function(i) {
+     parallel::mclapply(1:nr_genes, function(i) {
         construct <- names(event_probs)[construct_all_list[[i]]]
         orig_template <- exon_supersets[[drawn_genes[i]]]
         if (length(construct) == 0) {
@@ -405,8 +387,7 @@ create_splicing_variants_and_annotation <-
           exon_vector <-
             setNames(rep(T, available_exons), seq_len(available_exons))
 
-          #TODO: make option multi_events_per_exon create variants for each comb separateley
-          # make precomputions
+          #TODO: wrap in function
           if (!multi_events_per_exon) {
             exon_vector_tmp <- exon_vector
             all_events_tmp <- all_events
@@ -473,6 +454,7 @@ create_splicing_variants_and_annotation <-
           variants_and_event_annotation <-
             lapply(event_combs, function(comb) {
               ### create splice variants ----
+              #TODO: wrap in function
               if (multi_events_per_exon) {
                 exon_vector_tmp <- exon_vector
                 exon_vector_new <- exon_vector
@@ -496,7 +478,7 @@ create_splicing_variants_and_annotation <-
                     comb_tmp[comb_tmp != 'ale']
                 }
                 if ('mes' %in% comb) {
-                  mee_max_skipped_exons <- available_exons - .get_min_nr_exons(min_nr_exons_per_event, comb, multi_events_per_exon) + 2
+                  mee_max_skipped_exons <- available_exons - .get_min_nr_exons(min_nr_exons_per_event, paste(comb, collapse = ','), multi_events_per_exon) + 2L
                   mee_nr_skipped_exons <-
                     .draw_one_sample_safely(2:mee_max_skipped_exons)
                   min_nr_exons_per_event_tmp['mes'] <-
@@ -508,6 +490,7 @@ create_splicing_variants_and_annotation <-
                   .assign_events(exon_vector_tmp, min_nr_exons_per_event_tmp[comb_tmp])
 
                 if ('mee' %in% comb) {
+                  two_variants <- T
                   exon_vector_new[.draw_one_sample_safely(names(event_exons$mee)[2:3])] <-
                     F
                 }
@@ -537,11 +520,11 @@ create_splicing_variants_and_annotation <-
                 variant <-
                   orig_template[.apply_exon_events(exon_vector_new, comb, event_exons)]
                 if (two_variants) {
-                  template_tmp <- orig_template[exon_vector_new]
-                  template_tmp$transcript_id <-
+                  template_new <- orig_template[exon_vector_new]
+                  template_new$transcript_id <-
                     sprintf('%s_%s_template', gene_id, paste(comb, collapse = ","))
-                  S4Vectors::mcols(template_tmp)[c('tr_start', 'tr_end')] <-
-                    .get_transcriptomic_coord(IRanges::width(template_tmp))
+                  S4Vectors::mcols(template_new)[c('tr_start', 'tr_end')] <-
+                    .get_transcriptomic_coord(IRanges::width(template_new))
                 }
               } else {
                 variant <-
@@ -578,6 +561,8 @@ create_splicing_variants_and_annotation <-
                          start(ri) - start(retaining_exon))
                 ri$tr_end <- ri$tr_start + IRanges::width(ri) - 1L
                 ri$type <- 'ri'
+                ri$transcript_id <-
+                  sprintf('%s_%s', gene_id, paste(comb, collapse = ","))
               }
 
               variant$transcript_id <-
@@ -595,20 +580,10 @@ create_splicing_variants_and_annotation <-
                     event_exons,
                     exon_vector_new,
                     neg_strand,
-                    variant$transcript_id[1],
-                    start(variant),
-                    end(variant),
-                    variant$tr_start,
-                    variant$tr_end,
-                    variant$gene_exon_number,
-                    template_tmp$transcript_id[1],
-                    start(template_tmp),
-                    end(template_tmp),
-                    template_tmp$tr_start,
-                    template_tmp$tr_end,
-                    template_tmp$gene_exon_number
+                    template_new,
+                    variant
                   )
-                variant <- c(.add_transcript_and_junction_lines(template_tmp), .add_transcript_and_junction_lines(variant))
+                variant <- c(.add_transcript_and_junction_lines(template_new), .add_transcript_and_junction_lines(variant))
               } else {
                 event_annotation <-
                   .get_event_annotation(
@@ -616,18 +591,8 @@ create_splicing_variants_and_annotation <-
                     event_exons,
                     exon_vector,
                     neg_strand,
-                    variant$transcript_id[1],
-                    start(variant),
-                    end(variant),
-                    variant$tr_start,
-                    variant$tr_end,
-                    variant$gene_exon_number,
-                    template$transcript_id[1],
-                    start(template),
-                    end(template),
-                    template$tr_start,
-                    template$tr_end,
-                    template$gene_exon_number
+                    template,
+                    variant
                   )
                 variant <- .add_transcript_and_junction_lines(variant)
               }
@@ -659,7 +624,6 @@ create_splicing_variants_and_annotation <-
           ))
         }
       }, mc.cores = ncores)
-    browser()
     all_variants_and_event_annotation <- unlist(all_variants_and_event_annotation, recursive = F)
     event_annos <- endsWith(names(all_variants_and_event_annotation), 'event_annotation')
     event_annotation <- data.table::rbindlist(all_variants_and_event_annotation[event_annos])

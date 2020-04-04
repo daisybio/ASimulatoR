@@ -57,7 +57,9 @@ You'll still need to render `README.Rmd` regularly, to keep `README.md` up-to-da
 You can also embed plots, for example:
 
 ```{r pressure, echo = FALSE}
-#plot(pressure)
+library(ggbio, quietly = T); library(rtracklayer, quietly = T); library(GenomicFeatures, quietly = T)
+gff <- import('maxGenes100/splicing_variants.gff3')
+autoplot(split(gff[seqnames(gff) == 'Y' & gff$type == 'exon'], gff[seqnames(gff) == 'Y' & gff$type == 'exon']$transcript_id))
 ```
 
 In that case, don't forget to commit and push the resulting figure files, so they display on GitHub!
