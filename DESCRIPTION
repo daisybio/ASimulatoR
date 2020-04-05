@@ -2,7 +2,7 @@ Package: ass
 Version: 0.0.0.9000
 Date: 2020-01-01
 Title: Alternative Splicing Simulator
-Authors@R: c(person("Quirin", "Developer", role = c("aut", "cre"),
+Authors@R: c(person("Quirin", "Developer", role = c("aut"),
                      email = "qu.manz@tum.de"),
               person("Amit", "Author", role = "aut",
                      email = "amit.fenn@wzw.tum.de"),
@@ -10,11 +10,13 @@ Authors@R: c(person("Quirin", "Developer", role = c("aut", "cre"),
                      email = "olga.tsoy@wzw.tum.de"))
 Author: Amit Fenn, Quirin Manz, Olga Tsoy
 Maintainer: Quirin Manz <qu.manz@tum.de>
-Depends: R (>= 3.6.1), rtracklayer, data.table (>= 1.9.8)
+Depends: R (>= 3.6.1), data.table (>= 1.9.8), rtracklayer, polyester
+biocViews: rtracklayer
 Remotes: quirinmanz/polyester
 Description: Simulates RNA-Seq experiments with alternative splice variants using the polyester R package.
 License: GPL (>= 2)
-URL: https://www.r-project.org, http://www.another.url
-BugReports: https://pkgname.bugtracker.url
+Repository: GitHub
+URL: https://github.com/biomedbigdata/as_simulator
+BugReports: https://github.com/biomedbigdata/as_simulator
 RoxygenNote: 7.1.0
 Encoding: UTF-8

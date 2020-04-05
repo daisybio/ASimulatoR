@@ -27,17 +27,22 @@
   if (is.null(args$multi_events_per_exon)) {
     args$multi_events_per_exon <- F
   }
+  if (is.null(args$probs_as_freq)) {
+    args$probs_as_freq <- F
+  }
 
   return(args)
 }
 
-.check_event_probs <- function(event_probs){
+.check_event_probs <- function(event_probs, probs_as_freq){
   as_names <- c('a3', 'a5', 'ir', 'es', 'ale', 'afe', 'mee', 'mes')
   if (is.list(event_probs))
     event_probs <- unlist(event_probs)
   if (is.numeric(event_probs)) {
     if (any(event_probs < 0 | event_probs > 1) || is.null(names(event_probs)))
       stop('Event probabilites have to be provided as named list/vector and each entry must be a probability.')
+    if (probs_as_freq && (sum(event_probs) > 1))
+      stop('If probabilites should be used as relative frequencies the sum of all entries cannot be greater than one.')
     names(event_probs) <- tolower(names(event_probs))
     split <- unique(unlist(strsplit(names(event_probs), ',', fixed = T)))
     if (any(!split %in% as_names))
@@ -249,10 +254,7 @@
 #'   as eXpress or Salmon.
 #'
 #' @export
-#'
-#' @examples \donttest{
-#' }
-#' @import data.table
+
 simulate_alternative_splicing <-
   function(gtf_path,
            event_probs,
@@ -262,7 +264,7 @@ simulate_alternative_splicing <-
            ...)
   {
     args <- .check_parameters(list(...))
-    event_probs <- .check_event_probs(event_probs)
+    event_probs <- .check_event_probs(event_probs, args$probs_as_freq)
 
 
     # Store the current random number generator to restore at the end
@@ -298,7 +300,8 @@ simulate_alternative_splicing <-
       args$write_gff,
       args$max_genes,
       args$exon_junction_coverage,
-      args$multi_events_per_exon
+      args$multi_events_per_exon,
+      args$probs_as_freq
     )
 
     #TODO: make the transcript expression
@@ -333,10 +336,11 @@ simulate_alternative_splicing <-
 
 ### debugging/examples ----
 # max_genes = 100
+# ens_dir = "/home/quirin/Dokumente/HiWi/ensembl_data" # /nfs/proj/Sys_CARE/AS_Simulator/ensembl_data
+# multi_events_per_exon = T
 # params = list(
-#   ncores = 40,
-#   gtf_path =
-#     '/nfs/proj/Sys_CARE/AS_Simulator/ensembl_data/Homo_sapiens.GRCh38.99.gtf',
+#   ncores = 1,
+#   gtf_path = file.path(ens_dir, 'Homo_sapiens.GRCh38.99.gtf'),
 #   event_probs =
 #     setNames(
 #       list(0.5, 0.1, 0.1, 0.1, 0.1, 0.1, 0.1, 0.1, 0.1),
@@ -353,13 +357,14 @@ simulate_alternative_splicing <-
 #       )
 #     ),
 #   seqpath =
-#     '/nfs/proj/Sys_CARE/AS_Simulator/ensembl_data/Homo_sapiens.GRCh38.99.fa',
+#     file.path(ens_dir, 'Homo_sapiens.GRCh38.99.fa'),
 #   max_genes = max_genes,
 #   outdir = sprintf(
-#     '/nfs/home/students/ga89koc/hiwi/as_simulator/maxGenes%d',
+#     './multiEventsPerExon%s_maxGenes%d',
+#     multi_events_per_exon,
 #     max_genes
 #   ),
-#   multi_events_per_exon = T
+#   multi_events_per_exon = multi_events_per_exon
 # )
 #
 # do.call(simulate_alternative_splicing, params)
