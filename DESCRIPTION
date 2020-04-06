@@ -11,8 +11,9 @@ Authors@R: c(person("Quirin", "Developer", role = c("aut"),
 Author: Amit Fenn, Quirin Manz, Olga Tsoy
 Maintainer: Quirin Manz <qu.manz@tum.de>
 Depends: R (>= 3.6.1), data.table (>= 1.9.8), rtracklayer, polyester
-biocViews: rtracklayer
+biocViews: rtracklayer, ggbio
 Remotes: quirinmanz/polyester
+Suggests: ggbio
 Description: Simulates RNA-Seq experiments with alternative splice variants using the polyester R package.
 License: GPL (>= 2)
 Repository: GitHub

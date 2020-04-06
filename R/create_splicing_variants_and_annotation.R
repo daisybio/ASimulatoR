@@ -60,8 +60,7 @@
     event <- draw_one_sample_safely(min_nr_exons_per_event)
     # does not work
     if (event > length(v)) {
-      browser()
-      stop('Error in assign events: Event length is bigger than vector.')
+      stop('Error in assign events: Event length is bigger than vector. This is never supposed to happen.')
     }
     event_start <- draw_one_sample_safely(1:(length(v) - event + 1))
     vs <-

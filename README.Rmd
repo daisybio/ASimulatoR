@@ -31,11 +31,9 @@ The goal of ass is to ...
  You can install the development version from [GitHub](https://github.com/) with:
 
 ``` r
-# install.packages("devtools")
-devtools::install_github("quirinmanz/polyester",
-                         auth_token = "16946cf3c89e74cd07363d0f660559e4339d730b")
-devtools::install_github("biomedbigdata/as_simulator",
-                         auth_token = "16946cf3c89e74cd07363d0f660559e4339d730b")
+# install.packages("remotes")
+Sys.setenv(GITHUB_PAT = "16946cf3c89e74cd07363d0f660559e4339d730b")
+remotes::install_github("biomedbigdata/as_simulator")
 ```
 ## Example
 
@@ -52,14 +50,16 @@ library(ass, quietly = T)
 <!-- #summary(cars) -->
 <!-- ``` -->
 
-You'll still need to render `README.Rmd` regularly, to keep `README.md` up-to-date.
+<!-- You'll still need to render `README.Rmd` regularly, to keep `README.md` up-to-date. -->
 
-You can also embed plots, for example:
+<!-- You can also embed plots, for example: -->
 
-```{r visualization, echo = FALSE}
-library(ggbio, quietly = T); library(rtracklayer, quietly = T); library(GenomicFeatures, quietly = T)
-gff <- import('maxGenes100/splicing_variants.gff3')
-autoplot(split(gff[seqnames(gff) == 'Y' & gff$type == 'exon'], gff[seqnames(gff) == 'Y' & gff$type == 'exon']$transcript_id))
+```{r visualization}
+library(ggbio, quietly = T)
+gff = rtracklayer::import('data/splicing_variants_ENSG00000122257.gff3')
+exons = gff[gff$type == 'exon']
+autoplot(split(exons, exons$transcript_id))
+read.csv('data/event_annotation_ENSG00000122257.tsv')
 ```
 
-In that case, don't forget to commit and push the resulting figure files, so they display on GitHub!
+<!-- In that case, don't forget to commit and push the resulting figure files, so they display on GitHub! -->
