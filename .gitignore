@@ -6,7 +6,6 @@
 .Ruserdata
 packrat/lib*/
 outdir*
-*maxGenes*
 .Rhistory
 .DS_Store
 plots/*

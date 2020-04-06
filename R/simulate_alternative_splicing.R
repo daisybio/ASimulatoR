@@ -1,5 +1,26 @@
-.check_parameters <- function(args) {
+.check_parameters <- function(args, input_dir) {
   #TODO: check if they are the right class?
+  # check input dir
+  if (!dir.exists(input_dir)) {
+    stop(sprintf("could not find input directory %s", input_dir))
+  } else {
+    gtfs <- list.files(input_dir, pattern = '\\.gtf$|\\.gff$')
+    if (length(gtfs) == 0) {
+      stop(sprintf("could not find gtf/gff in input directory %s", input_dir))
+    } else {
+      args$gtf_path <- file.path(input_dir, gtfs[1])
+      if (length(gtfs) > 1) {
+        warning(sprintf("found more than one gtf/gff file in input directory. using %s...", args$gtf_path))
+      }
+    }
+    fastas <- list.files(input_dir, pattern = '\\.fa$')
+    if (length(fastas) == 0)
+      stop(sprintf("could not find fasta files in input directory %s", input_dir))
+    args$valid_chromosomes <- sub('.fa', '', fastas)
+    message(sprintf("found the following fasta files: %s", paste(fastas, collapse = ", ")))
+    message("note that splice variants will only be constructed from chromosomes that have a corresponding fasta file")
+  }
+  # check other params
   if (is.null(args$exon_junction_coverage)) {
     args$exon_junction_coverage <- T
   }
@@ -30,6 +51,7 @@
   if (is.null(args$probs_as_freq)) {
     args$probs_as_freq <- F
   }
+  
 
   return(args)
 }
@@ -256,16 +278,15 @@
 #' @export
 
 simulate_alternative_splicing <-
-  function(gtf_path,
+  function(input_dir,
            event_probs,
-           seqpath,
            outdir,
            ncores = 1L,
            ...)
   {
-    args <- .check_parameters(list(...))
+    args <- .check_parameters(list(...), input_dir)
+    
     event_probs <- .check_event_probs(event_probs, args$probs_as_freq)
-
 
     # Store the current random number generator to restore at the end
     # Changing to L'Ecuyer-CMRG allows for reproducibility for parallel runs
@@ -288,12 +309,9 @@ simulate_alternative_splicing <-
     }
 
     ### create the splice variants for every event ----
-    valid_chromosomes <- sub('.fa', '', list.files(seqpath))
-
-    #TODO: add return null if exon_junction_coverage is FALSE
     args$exon_junction_table <- create_splicing_variants_and_annotation(
-      gtf_path,
-      valid_chromosomes,
+      args$gtf_path,
+      args$valid_chromosomes,
       event_probs,
       outdir,
       args$ncores,
@@ -321,7 +339,7 @@ simulate_alternative_splicing <-
       args$meanmodel = T
     }
     args$gtf <- file.path(outdir, 'splicing_variants.gtf')
-    args$seqpath <- seqpath
+    args$seqpath <- input_dir
     args$outdir <- outdir
 
     ### simulate with polyester----
