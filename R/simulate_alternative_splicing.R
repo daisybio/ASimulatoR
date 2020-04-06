@@ -19,6 +19,7 @@
     args$valid_chromosomes <- sub('.fa', '', fastas)
     message(sprintf("found the following fasta files: %s", paste(fastas, collapse = ", ")))
     message("note that splice variants will only be constructed from chromosomes that have a corresponding fasta file")
+    message('')
   }
   # check other params
   if (is.null(args$exon_junction_coverage)) {
