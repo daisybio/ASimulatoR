@@ -141,15 +141,14 @@
       "Package": "ass",
       "Version": "0.0.0.9000",
       "Source": "GitHub",
-      "Repository": "GitHub",
       "Remotes": "quirinmanz/polyester",
       "RemoteType": "github",
       "RemoteHost": "api.github.com",
-      "RemoteRepo": "as_simulator",
+      "RemoteRepo": "ass",
       "RemoteUsername": "biomedbigdata",
       "RemoteRef": "master",
-      "RemoteSha": "bb45d4b6a28f70da0abb71abe48e3d54326acced",
-      "Hash": "7d5d94adf467efeec55f4655ecd17d88"
+      "RemoteSha": "c14706bfb019e0146ed89db7775201a0612b3c68",
+      "Hash": "f2b242ac6583addd2e532a057505818c"
     },
     "bitops": {
       "Package": "bitops",
@@ -235,15 +234,15 @@
     },
     "renv": {
       "Package": "renv",
-      "Version": "0.9.3-63",
+      "Version": "0.9.3-68",
       "Source": "GitHub",
       "RemoteType": "github",
       "RemoteHost": "api.github.com",
-      "RemoteUsername": "rstudio",
       "RemoteRepo": "renv",
-      "RemoteRef": "0.9.3-63",
-      "RemoteSha": "1cf1564777618771bbde31b22952b85eca181cad",
-      "Hash": "53c0d71f08be36f8f16d9b6e9a30fe06"
+      "RemoteUsername": "rstudio",
+      "RemoteRef": "master",
+      "RemoteSha": "aaecb9a4ed1112b5cc481ba395ba78cec281e4f5",
+      "Hash": "f697d1a24816a81e3132e625b7e06db7"
     },
     "rtracklayer": {
       "Package": "rtracklayer",
