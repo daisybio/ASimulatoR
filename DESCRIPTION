@@ -16,8 +16,7 @@ Remotes: quirinmanz/polyester
 Suggests: ggbio
 Description: Simulates RNA-Seq experiments with alternative splice variants using the polyester R package.
 License: GPL (>= 2)
-Repository: GitHub
-URL: https://github.com/biomedbigdata/as_simulator
-BugReports: https://github.com/biomedbigdata/as_simulator
+URL: https://github.com/biomedbigdata/ass
+BugReports: https://github.com/biomedbigdata/ass/issues
 RoxygenNote: 7.1.0
 Encoding: UTF-8

@@ -283,10 +283,10 @@
     },
     "backports": {
       "Package": "backports",
-      "Version": "1.1.6",
+      "Version": "1.1.5",
       "Source": "Repository",
       "Repository": "CRAN",
-      "Hash": "3997fd62345a616e59e8161ee0a5816f"
+      "Hash": "e9f705633dc932bfd5b02b17a5053a06"
     },
     "base64enc": {
       "Package": "base64enc",
