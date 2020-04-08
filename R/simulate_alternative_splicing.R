@@ -44,7 +44,7 @@
     args$readlen <- 150
   }
   if (is.null(args$write_gff)) {
-    args$write_gff <- T
+    args$write_gff <- F
   }
   if (is.null(args$multi_events_per_exon)) {
     args$multi_events_per_exon <- F

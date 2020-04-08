@@ -108,7 +108,7 @@ create_splicing_variants_and_annotation <-
            event_probs,
            outdir,
            ncores,
-           write_gff,
+           write_gff = F,
            max_genes = NULL,
            exon_junction_coverage = T,
            multi_events_per_exon = F,
@@ -323,11 +323,26 @@ create_splicing_variants_and_annotation <-
 
     ### exporting ----
     message('exporting gtf for read simulation...')
-    rtracklayer::export(variants[variants$type != 'junction' & variants$type != 'ri'],
+    gene_idx <- variants$type == "gene"
+    transcript_idx <- variants$type == "transcript"
+    exon_idx <- variants$type == "exon"
+    rtracklayer::export(variants[gene_idx | transcript_idx | exon_idx],
                         file.path(outdir, 'splicing_variants.gtf'))
-    if (write_gff)
-      rtracklayer::export(variants[variants$type != 'junction' & variants$type != 'ri'],
+    if (write_gff) {
+      # create Id and Parent field before exporting
+      variants$ID <- character(length(variants))
+      variants$Parent <- character(length(variants))
+      variants$ID[gene_idx] <- variants$gene_id[gene_idx]
+      variants$ID[transcript_idx] <- variants$transcript_id[transcript_idx]
+      variants$Parent[transcript_idx] <- variants$gene_id[transcript_idx]
+      variants$ID[exon_idx] <- sprintf('%s_x%s', variants$transcript_id[exon_idx], variants$gene_exon_number[exon_idx])
+      variants$Parent[exon_idx] <- variants$transcript_id[exon_idx]
+      # export gff3
+      rtracklayer::export(variants[gene_idx | transcript_idx | exon_idx],
                           file.path(outdir, 'splicing_variants.gff3'))
+      variants$ID <- NULL
+      variants$Parent <- NULL
+    }
     message('finished exporting gtf')
     message('')
 
@@ -342,6 +357,6 @@ create_splicing_variants_and_annotation <-
     message('finished exporting event_annotation...')
     message('')
 
-    if (exon_junction_coverage) return(data.table::as.data.table(variants)[type != 'gene' & type != 'transcript'])
+    if (exon_junction_coverage) return(data.table::as.data.table(variants[!(gene_idx | transcript_idx)]))
     else invisible(NULL)
   }
