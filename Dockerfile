@@ -2,9 +2,9 @@ FROM rocker/r-base:3.6.3
 RUN apt-get update && apt-get install -y libcurl4-openssl-dev libxml2-dev
 
 RUN mkdir /home/ass
-COPY ./docker/renv.lock /home/ass/renv.lock
+COPY ./container/renv.lock /home/ass/renv.lock
 # copying .Renviron file can be deleted once the repositories are public
-COPY ./docker/.Renviron /home/ass/.Renviron
+COPY ./container/.Renviron /home/ass/.Renviron
 WORKDIR /home/ass
 
 RUN R -e "install.packages('renv'); \
