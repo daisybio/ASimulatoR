@@ -18,4 +18,4 @@ jobs:
           password: ${{ secrets.GITHUB_TOKEN }}
           registry: docker.pkg.github.com
           repository: biomedbigdata/ass/ass_docker
-          tag_with_ref: true
+          tags: latest
