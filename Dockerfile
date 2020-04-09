@@ -7,7 +7,7 @@ WORKDIR /home/ass
 
 RUN R -e "install.packages('renv'); \
   renv::consent(provided = TRUE); \
-  renv::restore();
+  renv::restore(); \
   devtools::install()"
 
 # usage: docker run --user $(id -u):$(id -g) -v input_host:/input -v ouput_host:/output_container image
