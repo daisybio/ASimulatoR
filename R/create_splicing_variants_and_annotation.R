@@ -44,8 +44,8 @@
   template <- c(g, template)
   template[1]$transcript_id <- NA
   template[1]$template <- NA
-  template[1]$tr_start <- 0L
-  template[1]$tr_end <- 0L
+  template[1]$tr_start <- NA
+  template[1]$tr_end <- NA
   template
 }
 
@@ -333,6 +333,7 @@ create_splicing_variants_and_annotation <-
       variants$ID <- character(length(variants))
       variants$Parent <- character(length(variants))
       variants$ID[gene_idx] <- variants$gene_id[gene_idx]
+      variants$Parent[gene_idx] <- NA
       variants$ID[transcript_idx] <- variants$transcript_id[transcript_idx]
       variants$Parent[transcript_idx] <- variants$gene_id[transcript_idx]
       variants$ID[exon_idx] <- sprintf('%s_x%s', variants$transcript_id[exon_idx], variants$gene_exon_number[exon_idx])
