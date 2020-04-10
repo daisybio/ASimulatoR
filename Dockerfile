@@ -1,13 +1,14 @@
 FROM rocker/r-base:3.6.3
 RUN apt-get update && apt-get install -y libcurl4-openssl-dev libxml2-dev libssl-dev/unstable
 
-RUN mkdir /home/ass
-COPY ./ /home/ass/
-WORKDIR /home/ass
+RUN mkdir /ass /input /output
+COPY ./ /ass
+WORKDIR /ass
 
-RUN R -e "install.packages('renv'); \
-  renv::consent(provided = TRUE); \
-  renv::restore(); \
+#ENV RENV_VERSION 0.9.3-71
+#install.packages('remotes', repos = c(CRAN = 'https://cloud.r-project.org')); \
+#  remotes::install_github('rstudio/renv@${RENV_VERSION}'); \
+RUN R -e "renv::restore(); \
   devtools::install(quick = T)"
 
 # usage: docker run --user $(id -u):$(id -g) -v input_host:/input -v ouput_host:/output_container image

@@ -31,6 +31,13 @@
       "Source": "Bioconductor",
       "Hash": "b2dabf833cc349c2cd9cba38de7af085"
     },
+    "BiocManager": {
+      "Package": "BiocManager",
+      "Version": "1.30.10",
+      "Source": "Repository",
+      "Repository": "CRAN",
+      "Hash": "db75371846625725e221470b310da1d5"
+    },
     "BiocParallel": {
       "Package": "BiocParallel",
       "Version": "1.20.1",
@@ -627,15 +634,15 @@
     },
     "renv": {
       "Package": "renv",
-      "Version": "0.9.3-68",
+      "Version": "0.9.3-71",
       "Source": "GitHub",
       "RemoteType": "github",
       "RemoteHost": "api.github.com",
       "RemoteRepo": "renv",
       "RemoteUsername": "rstudio",
-      "RemoteRef": "master",
-      "RemoteSha": "aaecb9a4ed1112b5cc481ba395ba78cec281e4f5",
-      "Hash": "f697d1a24816a81e3132e625b7e06db7"
+      "RemoteRef": "0.9.3-71",
+      "RemoteSha": "4b7f873194c78760e0b65160c3aa836bb48f55f0",
+      "Hash": "b9bd2e8cf5454288975a0bee0418cc39"
     },
     "rex": {
       "Package": "rex",
