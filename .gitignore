@@ -10,3 +10,4 @@ outdir*
 .DS_Store
 plots/*
 singularity/
+.RData

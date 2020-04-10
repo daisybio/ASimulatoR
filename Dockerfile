@@ -5,10 +5,10 @@ RUN mkdir /ass /input /output
 COPY ./ /ass
 WORKDIR /ass
 
-#ENV RENV_VERSION 0.9.3-71
-#install.packages('remotes', repos = c(CRAN = 'https://cloud.r-project.org')); \
-#  remotes::install_github('rstudio/renv@${RENV_VERSION}'); \
-RUN R -e "renv::restore(); \
+ENV RENV_VERSION 0.9.3-71
+install.packages('remotes', repos = c(CRAN = 'https://cloud.r-project.org')); \
+  remotes::install_github('rstudio/renv@${RENV_VERSION}'); \
+  renv::restore(); \
   devtools::install(quick = T)"
 
 # usage: docker run --user $(id -u):$(id -g) -v input_host:/input -v ouput_host:/output_container image
