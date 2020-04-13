@@ -22,37 +22,40 @@
     message('')
   }
   # check other params
-  if (is.null(args$exon_junction_coverage)) {
-    args$exon_junction_coverage <- T
-  }
-  if (is.null(args$error_rate)) {
-    args$error_rate <- 0
-  }
-  if (is.null(args$strand_specific)) {
+  if (is.null(args$exon_junction_coverage)) args$exon_junction_coverage <- T
+  else stopifnot(is.logical(args$exon_junction_coverage))
+  if (is.null(args$error_rate)) args$error_rate <- 0
+  else stopifnot(is.numeric(args$error_rate))
+  if (is.null(args$strand_specific))
     args$strand_specific <- T
-  }
-  if (is.null(args$gzip)) {
+  else stopifnot(is.logical(args$strand_specific))
+  if (is.null(args$gzip))
     args$gzip <- T
-  }
-  if (is.null(args$shuffle)) {
+else stopifnot(is.logical(args$gzip))
+  if (is.null(args$shuffle))
     args$shuffle <- T
-  }
-  if (is.null(args$fastq)) {
+  stopifnot(is.logical(args$shuffle))
+  if (is.null(args$fastq))
     args$fastq <- T
-  }
-  if (is.null(args$readlen)) {
+  else stopifnot(is.logical(args$fastq))
+  if (is.null(args$readlen)) 
     args$readlen <- 150
-  }
-  if (is.null(args$write_gff)) {
+   else stopifnot(is.numeric(args$readlen))
+  if (is.null(args$write_gff)) 
     args$write_gff <- F
-  }
-  if (is.null(args$multi_events_per_exon)) {
+    else stopifnot(is.logical(args$write_gff))
+  if (is.null(args$multi_events_per_exon)) 
     args$multi_events_per_exon <- F
-  }
-  if (is.null(args$probs_as_freq)) {
+  else stopifnot(is.logical(args$multi_events_per_exon))
+  if (is.null(args$probs_as_freq)) 
     args$probs_as_freq <- F
+  else stopifnot(is.logical(args$probs_as_freq))
+  if (is.null(args$verbose)) 
+    args$verbose <- T
+  else stopifnot(is.logical(args$verbose))
+  if (!is.null(args$seq_depth)){
+    stopifnot(is.numeric(args$seq_depth))
   }
-  
 
   return(args)
 }
@@ -67,68 +70,22 @@
     if (probs_as_freq && (sum(event_probs) > 1))
       stop('If probabilites should be used as relative frequencies the sum of all entries cannot be greater than one.')
     names(event_probs) <- tolower(names(event_probs))
-    split <- unique(unlist(strsplit(names(event_probs), ',', fixed = T)))
-    if (any(!split %in% as_names))
-      stop('Please provide the alternative splicing event names comma-separated per probability.')
+    split_names <- unique(unlist(strsplit(names(event_probs), ',', fixed = T)))
+    match.arg(split_names, as_names, T)
     return(event_probs)
   } else stop('Event probabilites have to be provided as named list/vector and each entry must be a probability.')
 }
 
-#' simulate RNA-seq experiment using negative binomial model
+#' simulate RNA-seq experiment with splicing variants 
 #'
-#' create FASTA files containing RNA-seq reads simulated from provided
-#'   transcripts, with optional differential expression between two groups
-#' @param gtf_path path to GTF file containing transcript structures from which
-#'   splice variants will be created. See details.
-#' @param seqpath path to folder containing one FASTA file (\code{.fa}
-#'   extension) for each chromosome in \code{gtf}. See details.
+#' @param input_dir directory containing the gtf file from which splice variants are created
+#' and fasta files passed to polyester
+#' @param event_probs 
 #' @param outdir character, path to folder where simulated reads and all
 #'   annotations should be written, with *no* slash at the end. By default,
 #'   reads are written to current working directory.
-#' @param num_reps How many biological replicates should be in each group? The
-#'   length \code{num_reps} determines how many groups are in the experiment.
-#'   For example, \code{num_reps = c(5,6,5)} specifies a 3-group experiment with
-#'   5 samples in group 1, 6 samples in group 2, and 5 samples in group 3.
-#'   Defaults to a 2-group experiment with 10 reps per group (i.e.,
-#'   \code{c(10,10)}).
-#' @param reads_per_transcript baseline mean number of reads to simulate
-#'   from each transcript. Can be an integer, in which case this many reads
-#'   are simulated from each transcript, or an integer vector whose length
-#'   matches the number of transcripts in \code{fasta}. Default 300. You can
-#'   also leave \code{reads_per_transcript} empty and set \code{meanmodel=TRUE}
-#'   to draw baseline mean numbers from a model based on transcript length.
-#' @param size the negative binomial \code{size} parameter (see
-#'   \code{\link{NegBinomial}}) for the number of reads drawn per transcript.
-#'   It can be a matrix (where the user can specify the size parameter per
-#'   transcript, per group), a vector (where the user can specify the size per
-#'   transcript, perhaps relating to reads_per_transcript), or a single number,
-#'   specifying the size for all transcripts and groups.
-#'   If left NULL, defaults to \code{reads_per_transcript * fold_changes / 3}.
-#'   Negative binomial variance is mean + mean^2 / size.
-#' @param fold_changes Matrix specifying multiplicative fold changes
-#'   between groups. There is no default, so you must provide this argument.
-#'   In real data sets, lowly-expressed transcripts often show high fold
-#'   changes between groups, so this can be kept in mind when setting
-#'   \code{fold_changes} and \code{reads_per_transcript}. This argument must
-#'   have the same number of columns as there are groups as
-#'   specified by \code{num_reps}, and must have the same number of rows as
-#'   there are transcripts in \code{fasta}. A fold change of X in matrix entry
-#'   i,j means that for replicate j, the baseline mean number of reads
-#'   (reads_per_transcript[i]) will be multiplied by X. Note that the
-#'   multiplication happens before the negative binomial value
-#'   (for the number of reads that *actually will* be
-#'   drawn from transcript i, for replicate j) is drawn. This argument is
-#'   ignored if \code{length(num_reps)} is 1 (meaning you only have 1 group in
-#'   your simulation).
-#' @param paired If \code{TRUE}, paired-end reads are simulated; else
-#'   single-end reads are simulated. Default \code{TRUE}
-#' @param reportCoverage whether to write out coverage information to
-#'   \code{sample_coverages.rda} file in the \code{outdir}.
-#'   defaults to \code{FALSE}
 #' @param ncores the number of cores to be utilized for parallel generation
-#'   of simulated reads. Note that if more than one core is specified,
-#'   the code will parallelize by replicate, so if num_reps == 1, this
-#'   will not be utilized.
+#'   of splice variant creation and read simulation.
 #' @param ... any of several other arguments that can be used to add nuance
 #'   to the simulation. See details.
 #'
@@ -323,8 +280,22 @@ simulate_alternative_splicing <-
       args$probs_as_freq
     )
 
+    
     #TODO: make the transcript expression
+    # browser()
     nr_transcripts <- length(unique(args$exon_junction_table$transcript_id))
+    # tr_lengths <- args$exon_junction_table[type == 'exon', .(tr_length = sum(width)), by = transcript_id]
+    # b0 = -3.0158
+    # b1 = 0.8688
+    # sigma = 4.152
+    # logmus = b0 + b1 * log2(tr_lengths$tr_length) + rnorm(tr_lengths$tr_length, 
+    #                                                     0, sigma)
+    # reads_per_transcript = 2^logmus - 1
+    # reads_per_transcript = pmax(reads_per_transcript, 1e-06)
+    # basemeans = matrix(c(reads_per_transcript, reads_per_transcript), 
+    #        nrow = length(reads_per_transcript))
+    # size = basemeans/3
+    # NB(as.matrix(basemeans), as.matrix(size))
     if (is.null(args$fold_changes)) {
       args$fold_changes <-
         matrix(c(
@@ -336,9 +307,7 @@ simulate_alternative_splicing <-
         ),
         nrow = nr_transcripts)
     }
-    if (is.null(args$reads_per_transcript)) {
-      args$meanmodel = T
-    }
+    args$meanmodel = T
     args$gtf <- file.path(outdir, 'splicing_variants.gtf')
     args$seqpath <- input_dir
     args$outdir <- outdir
@@ -353,37 +322,28 @@ simulate_alternative_splicing <-
   }
 
 
-### debugging/examples ----
-# max_genes = 100
-# ens_dir = "/home/quirin/Dokumente/HiWi/ensembl_data" # /nfs/proj/Sys_CARE/AS_Simulator/ensembl_data
+### debugging ----
+# max_genes = 16
 # multi_events_per_exon = T
+# prob_as_freq = T
 # params = list(
-#   ncores = 1,
-#   gtf_path = file.path(ens_dir, 'Homo_sapiens.GRCh38.99.gtf'),
+#   ncores = 4,
+#   input_dir = '../ensembl_data/Homo_sapiens.GRCh38.99/',
 #   event_probs =
-#     setNames(
-#       list(0.5, 0.1, 0.1, 0.1, 0.1, 0.1, 0.1, 0.1, 0.1),
-#       c(
-#         'es',
-#         'mes',
-#         'ir',
-#         'a3',
-#         'a5',
-#         'afe',
-#         'ale',
-#         'mee',
-#         'ale,afe,mee,ir,mes,a3,es,a5'
-#       )
-#     ),
-#   seqpath =
-#     file.path(ens_dir, 'Homo_sapiens.GRCh38.99.fa'),
+#     setNames(c(0.125, 0.125, 0.125, 0.125, 0.125, 0.125, 0.125, 0.125),
+#              c('es', 'mes', 'ir', 'a3', 'a5', 'afe', 'ale', 'mee')),
 #   max_genes = max_genes,
 #   outdir = sprintf(
-#     './multiEventsPerExon%s_maxGenes%d',
+#     'outdir/maxGenes%d_multiEventsPerExon%s_eventsAsFreq%s',
+#     max_genes,
 #     multi_events_per_exon,
-#     max_genes
+#     prob_as_freq
 #   ),
-#   multi_events_per_exon = multi_events_per_exon
+#   gzip = T,
+#   write_gff = T,
+#   verbose = T,
+#   multi_events_per_exon = multi_events_per_exon,
+#   prob_as_freq = prob_as_freq
 # )
 #
 # do.call(simulate_alternative_splicing, params)

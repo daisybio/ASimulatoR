@@ -1,15 +1,4 @@
-#' Title
-#'
-#' @param comb 
-#' @param event_exons 
-#' @param exon_vector 
-#' @param neg_strand 
-#' @param template 
-#' @param variant 
-#'
-#' @return
-#'
-#' @examples
+# internal function to produce event annotation for a splice variant and its tempate
 get_event_annotation <-
   function(comb,
            event_exons,

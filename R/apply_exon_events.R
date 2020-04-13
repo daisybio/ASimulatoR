@@ -1,3 +1,4 @@
+# internal function to determine the exons, that are not used, based on the template
 apply_exon_events <- function(v, comb, event_exons) {
   if ('afe' %in% comb)
     v[c(1, 2)] <- v[c(2, 1)]

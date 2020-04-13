@@ -8,6 +8,7 @@ WORKDIR /ass
 ENV RENV_VERSION 0.9.3-71
 RUN R -e "install.packages('remotes', repos = c(CRAN = 'https://cloud.r-project.org')); \
   remotes::install_github('rstudio/renv@${RENV_VERSION}'); \
+  renv::consent(provided = TRUE); \
   renv::restore(); \
   devtools::install(quick = T)"
 

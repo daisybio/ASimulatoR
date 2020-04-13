@@ -1,3 +1,4 @@
+#internal function to determine details about the splice variant(s)
 construct_variant <-
   function(comb,
            exon_vector,

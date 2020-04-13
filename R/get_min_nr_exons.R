@@ -1,3 +1,4 @@
+# internal function to determine the minimal number of exons to create certain event combinations
 get_min_nr_exons <-
   function(min_nr_exons_per_event,
            construct,

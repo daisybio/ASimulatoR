@@ -59,9 +59,9 @@
     },
     "DelayedArray": {
       "Package": "DelayedArray",
-      "Version": "0.12.2",
+      "Version": "0.12.3",
       "Source": "Bioconductor",
-      "Hash": "bb0ef89f40dc3ed0fba84b600f46dcf0"
+      "Hash": "b6d613d1e53206ce39aa7a27a1704486"
     },
     "GenomeInfoDb": {
       "Package": "GenomeInfoDb",
@@ -142,9 +142,9 @@
     },
     "S4Vectors": {
       "Package": "S4Vectors",
-      "Version": "0.24.3",
+      "Version": "0.24.4",
       "Source": "Bioconductor",
-      "Hash": "6db19398c51ac38568e24f2e7aecab4f"
+      "Hash": "e338665aea0ba0bbf7615d318b2eccee"
     },
     "SummarizedExperiment": {
       "Package": "SummarizedExperiment",
@@ -566,8 +566,8 @@
       "RemoteRepo": "polyester",
       "RemoteUsername": "quirinmanz",
       "RemoteRef": "master",
-      "RemoteSha": "1cecf483b0e1f5d864d55dd0d6c276ad9f41c7c5",
-      "Hash": "4577ab4ae3928c66d9959dc7e3018d60"
+      "RemoteSha": "5c4c3f513cbbc36ef0d939b7b5c46ad9b7f70b1d",
+      "Hash": "a47ec4df491377b96e7f5595f5039c50"
     },
     "praise": {
       "Package": "praise",

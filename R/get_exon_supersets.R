@@ -1,12 +1,13 @@
-#' Title
+#' Create or load exon_supersets from gtf file
 #'
-#' @param gtf_path
-#' @param valid_chromosomes
-#' @param ncores
+#' @param gtf_path path to the gtf file from which exon supersets are created
+#' @param valid_chromosomes character vector. Only from these chromosomes exon supersets are created. 
+#' When used from \code{\link{create_splicing_variants_and_annotation}} chromosomes for which fasta files exist are used.
+#' @param ncores number of cores used to generate exon supersets in parallel.
 #'
-#' @return
+#' @return exon supersets generated from gtf file
 #'
-#' @examples
+# @examples
 get_exon_supersets <-
   function(gtf_path, valid_chromosomes, ncores) {
     exon_supersets_path <- sprintf('%s.exon_superset.rda', gtf_path)

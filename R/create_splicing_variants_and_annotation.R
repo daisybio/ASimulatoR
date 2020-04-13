@@ -85,13 +85,14 @@
   }
 }
 
-#' Internal function to create alternative splicing events
+#' Internal function to create alternative splicing events and annotation
 #'
 #' This is not intended to be called directly;
-#' instead it is meant to be called via \code{\link{simulate_alternative_cplicing}}
+#' instead it is meant to be called via \code{\link{simulate_alternative_splicing}}
 #'
-#' @param gtf_path
-#' @param valid_chromosomes
+#' @param gtf_path path to the gtf file from which splice variants are created
+#' @param valid_chromosomes character vector. Only from these chromosomes splice variants are created. 
+#' When used from \code{\link{create_splicing_variants_and_annotation}} chromosomes for which fasta files exist are used.
 #' @param event_probs
 #' @param outdir
 #' @param ncores the number of cores to be utilized for parallel generation
@@ -99,6 +100,8 @@
 #' @param write_gff
 #' @param max_genes
 #' @param exon_junction_coverage
+#' @param multi_events_per_exon 
+#' @param probs_as_freq 
 #'
 #' @return if \code{exon_junction_coverage = TRUE} the exons, junctions and retained introns as data table in gtf style
 #'
@@ -313,7 +316,7 @@ create_splicing_variants_and_annotation <-
             )
           ))
         }
-      }, mc.cores = ncores)
+      }, mc.cores = ncores, mc.set.seed = T)
     all_variants_and_event_annotation <- unlist(all_variants_and_event_annotation, recursive = F)
     event_annos <- endsWith(names(all_variants_and_event_annotation), 'event_annotation')
     event_annotation <- data.table::rbindlist(all_variants_and_event_annotation[event_annos])
