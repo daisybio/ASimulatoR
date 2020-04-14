@@ -55,7 +55,6 @@ library(ass, quietly = T)
 <!-- You can also embed plots, for example: -->
 
 ```{r visualization}
-library(devtools)
 library(ggbio, quietly = T)
 gff = rtracklayer::import('data/splicing_variants_ENSG00000122257.gff3')
 exons = gff[gff$type == 'exon']

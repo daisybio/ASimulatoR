@@ -279,10 +279,10 @@
     },
     "devtools": {
       "Package": "devtools",
-      "Version": "2.2.2",
+      "Version": "2.3.0",
       "Source": "Repository",
       "Repository": "CRAN",
-      "Hash": "e12b66f9f6dc41b765b047b4df4b4a38"
+      "Hash": "d55dae3aa077e25128115a81e974f318"
     },
     "digest": {
       "Package": "digest",
@@ -509,10 +509,10 @@
     },
     "nlme": {
       "Package": "nlme",
-      "Version": "3.1-145",
+      "Version": "3.1-147",
       "Source": "Repository",
       "Repository": "CRAN",
-      "Hash": "0ed9365684dc39cdd0bb5bd2f316dc67"
+      "Hash": "dd4a1423f1472a2a8e05dd2c8945c3af"
     },
     "nnet": {
       "Package": "nnet",
@@ -566,8 +566,8 @@
       "RemoteRepo": "polyester",
       "RemoteUsername": "quirinmanz",
       "RemoteRef": "master",
-      "RemoteSha": "5c4c3f513cbbc36ef0d939b7b5c46ad9b7f70b1d",
-      "Hash": "a47ec4df491377b96e7f5595f5039c50"
+      "RemoteSha": "d6642a702ebe98ac16e6e00c087bc4be9c25a9cd",
+      "Hash": "e3e85f0e40e4c39baebf0ca5f80a8090"
     },
     "praise": {
       "Package": "praise",
@@ -729,10 +729,10 @@
     },
     "survival": {
       "Package": "survival",
-      "Version": "3.1-11",
+      "Version": "3.1-12",
       "Source": "Repository",
       "Repository": "CRAN",
-      "Hash": "39c2135ecd56295df599417e034bb7a6"
+      "Hash": "1c5bb53bd428f3c42a25b7aeb983d8c7"
     },
     "sys": {
       "Package": "sys",
@@ -792,10 +792,10 @@
     },
     "xfun": {
       "Package": "xfun",
-      "Version": "0.12",
+      "Version": "0.13",
       "Source": "Repository",
       "Repository": "CRAN",
-      "Hash": "ccd8453a7b9e380628f6cd2862e46cad"
+      "Hash": "3c1eeacd705ff1695db94bfd443b8a84"
     },
     "xml2": {
       "Package": "xml2",
