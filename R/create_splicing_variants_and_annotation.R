@@ -93,15 +93,31 @@
 #' @param gtf_path path to the gtf file from which splice variants are created
 #' @param valid_chromosomes character vector. Only from these chromosomes splice variants are created. 
 #' When used from \code{\link{create_splicing_variants_and_annotation}} chromosomes for which fasta files exist are used.
-#' @param event_probs
-#' @param outdir
+#' @param event_probs Named list/vector containing numerics corresponding
+#'  to the probabilites to create the event(combination). 
+#'  If \code{probs_as_freq} is \code{TRUE} \code{event_probs} correspond 
+#'  to the relative frequency of occurences for the event(combination) and 
+#'  in this case the sum of all frequencies has to be <=1.
+#' @param outdir character, path to folder where simulated reads and all
+#'   annotations should be written, with *no* slash at the end. By default,
+#'   reads are written to current working directory.
 #' @param ncores the number of cores to be utilized for parallel generation
 #'   of splice variants.
-#' @param write_gff
-#' @param max_genes
-#' @param exon_junction_coverage
-#' @param multi_events_per_exon 
-#' @param probs_as_freq 
+#' @param write_gff Additionally to the gtf file containing the splice variants,
+#'   a gff3 file with the same content will be printed to the outdir. 
+#'   Default \code{TRUE}
+#' @param max_genes The maximum number of genes/exon supersets to be included 
+#'   in the process of splice variant creation. 
+#' @param exon_junction_coverage Should the real coverage of exons, junctions 
+#'   and retained introns should be written into a additional file?
+#'   Default \code{TRUE}, which means, that this function returns an exon junction table
+#' @param multi_events_per_exon Should it be possible to have more than one AS event 
+#'   at the same exon if multiple variants are created for the same exon superset?
+#'   !If this option is set to \code{TRUE}, there may occur unforeseen AS events 
+#'   that are not documented in the event_annotation file!.
+#'   Default \code{FALSE}
+#' @param probs_as_freq Should \code{event_probs} be treated as relative frequencies instead of probabilities?
+#'   Default \code{FALSE}
 #'
 #' @return if \code{exon_junction_coverage = TRUE} the exons, junctions and retained introns as data table in gtf style
 #'
@@ -115,14 +131,16 @@ create_splicing_variants_and_annotation <-
            max_genes = NULL,
            exon_junction_coverage = T,
            multi_events_per_exon = F,
-           probs_as_freq = F) {
+           probs_as_freq = F,
+           save_exon_superset = T) {
 
     ### create exon_superset ----
-    exon_supersets <- get_exon_supersets(gtf_path, valid_chromosomes, ncores)
+    exon_supersets <- get_exon_supersets(gtf_path, valid_chromosomes, ncores, save_exon_superset)
 
     ### assign as events to supersets ----
     gene_lengths <- sapply(exon_supersets, length)
     nr_genes <- min(sum(gene_lengths > 1), max_genes)
+    
     if (probs_as_freq) {
       construct_all <- sapply(names(event_probs), function(event) {
         rep(names(event_probs) == event, floor(event_probs[[event]] * nr_genes))

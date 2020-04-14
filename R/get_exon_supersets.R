@@ -3,17 +3,22 @@
 #' @param gtf_path path to the gtf file from which exon supersets are created
 #' @param valid_chromosomes character vector. Only from these chromosomes exon supersets are created. 
 #' When used from \code{\link{create_splicing_variants_and_annotation}} chromosomes for which fasta files exist are used.
+#' Default \code{NULL}: no chromosome filtering.
 #' @param ncores number of cores used to generate exon supersets in parallel.
+#' Default \code{1}: no parallel computing.
+#' @param save should the exon_supersets be saved to .rda file?
+#' Default \code{TRUE}
 #'
+#' @export
 #' @return exon supersets generated from gtf file
 #'
-# @examples
 get_exon_supersets <-
-  function(gtf_path, valid_chromosomes, ncores) {
+  function(gtf_path, valid_chromosomes=NULL, ncores=1L, save=TRUE) {
     exon_supersets_path <- sprintf('%s.exon_superset.rda', gtf_path)
     if (file.exists(exon_supersets_path)) {
       message('loading superset...')
       load(exon_supersets_path)
+      if (!is.null(valid_chromosomes))
       exon_supersets <-
         exon_supersets[as.character(sapply(exon_supersets, function(g)
           S4Vectors::runValue(GenomeInfoDb::seqnames(g))))
@@ -26,9 +31,11 @@ get_exon_supersets <-
       message('finished importing gtf')
       message('')
 
+      if (!is.null(valid_chromosomes))
+        exon_supersets <-
+          exon_supersets[GenomeInfoDb::seqnames(exon_supersets) %in% valid_chromosomes]
       exon_supersets <-
-        exon_supersets[GenomeInfoDb::seqnames(exon_supersets) %in% valid_chromosomes &
-                         exon_supersets$type == 'exon']
+        exon_supersets[exon_supersets$type == 'exon']
       exon_supersets <-
         split(exon_supersets, exon_supersets$gene_id)
 
@@ -61,11 +68,12 @@ get_exon_supersets <-
         }, mc.cores = ncores)
       message('finished creating superset')
       message('')
-
-      message('saving superset...')
-      save(exon_supersets, file = exon_supersets_path)
-      message('finished saving superset')
-      message('')
+      if (save) {
+        message('saving superset...')
+        save(exon_supersets, file = exon_supersets_path)
+        message('finished saving superset')
+        message('')
+      }
     }
     return(exon_supersets)
   }

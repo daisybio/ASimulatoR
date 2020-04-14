@@ -18,7 +18,7 @@ knitr::opts_chunk$set(
 <!-- badges: start -->
 <!-- badges: end -->
 
-The goal of ass is to ...
+The goal of ass is to simulate RNA-seq reads with alternative splicing events.
 
 ## Installation
 
@@ -28,21 +28,62 @@ The goal of ass is to ...
 <!-- install.packages("ass") -->
 <!-- ``` -->
 
- You can install the development version from [GitHub](https://github.com/) with:
+You can install the development version from [GitHub](https://github.com/) with:
 
 ``` r
 # install.packages("remotes")
 Sys.setenv(GITHUB_PAT = "16946cf3c89e74cd07363d0f660559e4339d730b")
 remotes::install_github("biomedbigdata/as_simulator")
 ```
+
+Please note that we use a custon Version of Polyester, that is available at https://github.com/quirinmanz/polyester
+
 ## Example
 
-This is a basic example which shows you how to solve a common problem:
+### Creating exon supersets
 
-```{r example}
-library(ass, quietly = T)
-## basic example code
+```{r createSuperset}
+suppressMessages(library(ass))
+
+# create exon superset for genes on chromosome 21 of ensembl release 99
+gtf_file = system.file('data', 'Homo_sapiens.GRCh38.99.21.gtf', package = 'ass')
+# by default the produed superset will be saved as .rda file into the same directory
+exon_superset = get_exon_supersets(gtf_file)
+exon_superset[[1]]
 ```
+
+### Simulating Alternative Splicing
+
+```{r simulateASS}
+# now we create splice variants from 9 exon supersets
+max_genes = 9
+
+# to create one variant per gene we set prob_as_freq to TRUE and then produce one of each AS events as well as one variant containing every event
+probs_as_freq = T
+event_freq = 
+    setNames(rep(1/9, 9),
+             c('es', 'mes', 'ir', 'a3', 'a5', 'afe', 'ale', 'mee', 'es,ir,mes,a3,a5,afe,ale,mee'))
+
+# we will create a small experiment with just one samplesper group
+num_reps = c(1,1)
+
+# we can use the previously created superset to simulate splice variants from, since it is saved in the same directory as the gtf
+# if no superset is found, a new one will be created
+simulate_alternative_splicing(input_dir = system.file('data', package = 'ass'),
+                              event_probs = event_freq,
+                              outdir = 'simulation', 
+                              probs_as_freq = probs_as_freq, 
+                              max_genes = max_genes,
+                              num_reps = num_reps)
+```
+
+### Check AS Event Annotation
+
+```{r eventAnnotation}
+event_anno = read.csv('simulation/event_annotation.tsv', sep = '\t')
+event_anno[event_anno$event_annotation == 'es',]
+```
+
 
 <!-- What is special about using `README.Rmd` instead of just `README.md`? You can include R chunks like so: -->
 
@@ -54,12 +95,17 @@ library(ass, quietly = T)
 
 <!-- You can also embed plots, for example: -->
 
-```{r visualization}
-library(ggbio, quietly = T)
-gff = rtracklayer::import('data/splicing_variants_ENSG00000122257.gff3')
-exons = gff[gff$type == 'exon']
-autoplot(split(exons, exons$transcript_id))
-read.csv('data/event_annotation_ENSG00000122257.tsv')
+### Visualize Splice Variants
+
+```{r visualization, dpi=300}
+# to visualitze the splice variants we will use ggbio
+suppressMessages(library(ggbio))
+# firstly, we load the newly created gtf file 
+gtf = rtracklayer::import('simulation/splicing_variants.gtf')
+# the gene id of the variant with all events
+gene_id = gtf$gene_id[grep('es,ir,mes,a3,a5,afe,ale,mee', gtf$transcript_id, fixed = T)[1]]
+exons = gtf[gtf$type == 'exon' & gtf$gene_id == gene_id]
+suppressWarnings(ggbio::autoplot(split(exons, exons$transcript_id)))
 ```
 
 <!-- In that case, don't forget to commit and push the resulting figure files, so they display on GitHub! -->

@@ -2,7 +2,7 @@
 % Please edit documentation in R/create_splicing_variants_and_annotation.R
 \name{create_splicing_variants_and_annotation}
 \alias{create_splicing_variants_and_annotation}
-\title{Internal function to create alternative splicing events}
+\title{Internal function to create alternative splicing events and annotation}
 \usage{
 create_splicing_variants_and_annotation(
   gtf_path,
@@ -10,21 +10,31 @@ create_splicing_variants_and_annotation(
   event_probs,
   outdir,
   ncores,
-  write_gff,
-  max_genes,
-  exon_junction_coverage
+  write_gff = F,
+  max_genes = NULL,
+  exon_junction_coverage = T,
+  multi_events_per_exon = F,
+  probs_as_freq = F,
+  save_exon_superset = T
 )
 }
 \arguments{
+\item{gtf_path}{path to the gtf file from which splice variants are created}
+
+\item{valid_chromosomes}{character vector. Only from these chromosomes splice variants are created. 
+When used from \code{\link{create_splicing_variants_and_annotation}} chromosomes for which fasta files exist are used.}
+
 \item{ncores}{the number of cores to be utilized for parallel generation
 of splice variants.}
 
-\item{exon_junction_coverage}{}
+\item{multi_events_per_exon}{}
+
+\item{probs_as_freq}{}
 }
 \value{
 if \code{exon_junction_coverage = TRUE} the exons, junctions and retained introns as data table in gtf style
 }
 \description{
 This is not intended to be called directly;
-instead it is meant to be called via \code{\link{simulate_alternative_cplicing}}
+instead it is meant to be called via \code{\link{simulate_alternative_splicing}}
 }
