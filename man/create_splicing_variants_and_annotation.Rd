@@ -24,12 +24,41 @@ create_splicing_variants_and_annotation(
 \item{valid_chromosomes}{character vector. Only from these chromosomes splice variants are created. 
 When used from \code{\link{create_splicing_variants_and_annotation}} chromosomes for which fasta files exist are used.}
 
+\item{event_probs}{Named list/vector containing numerics corresponding
+to the probabilites to create the event(combination). 
+If \code{probs_as_freq} is \code{TRUE} \code{event_probs} correspond 
+to the relative frequency of occurences for the event(combination) and 
+in this case the sum of all frequencies has to be <=1.}
+
+\item{outdir}{character, path to folder where simulated reads and all
+annotations should be written, with *no* slash at the end. By default,
+reads are written to current working directory.}
+
 \item{ncores}{the number of cores to be utilized for parallel generation
 of splice variants.}
 
-\item{multi_events_per_exon}{}
+\item{write_gff}{Additionally to the gtf file containing the splice variants,
+a gff3 file with the same content will be printed to the outdir. 
+Default \code{TRUE}}
 
-\item{probs_as_freq}{}
+\item{max_genes}{The maximum number of genes/exon supersets to be included 
+in the process of splice variant creation.}
+
+\item{exon_junction_coverage}{Should the real coverage of exons, junctions 
+and retained introns should be written into a additional file?
+Default \code{TRUE}, which means, that this function returns an exon junction table}
+
+\item{multi_events_per_exon}{Should it be possible to have more than one AS event 
+at the same exon if multiple variants are created for the same exon superset?
+!If this option is set to \code{TRUE}, there may occur unforeseen AS events 
+that are not documented in the event_annotation file!.
+Default \code{FALSE}}
+
+\item{probs_as_freq}{Should \code{event_probs} be treated as relative frequencies instead of probabilities?
+Default \code{FALSE}}
+
+\item{save_exon_superset}{should the exon_supersets be saved to .rda file?
+Default \code{TRUE}}
 }
 \value{
 if \code{exon_junction_coverage = TRUE} the exons, junctions and retained introns as data table in gtf style

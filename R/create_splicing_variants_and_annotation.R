@@ -10,7 +10,7 @@
   S4Vectors::mcols(tr) <- S4Vectors::mcols(variant[1])
   tr$type <- 'transcript'
   # create junction lines
-  junctions <- GenomicRanges::gaps(variant, start = min(IRanges::start(variant))) + 1
+  junctions <- IRanges::gaps(variant, start = min(BiocGenerics::start(variant))) + 1
   if (length(junctions) > 0)
     S4Vectors::mcols(junctions) <- S4Vectors::DataFrame(
       source = "as_simulator",
@@ -29,7 +29,7 @@
     variant <- c(parent.frame()$ri, variant)
   }
   # merge everything
-  variant <- sort(c(variant, junctions), decreasing = (S4Vectors::runValue(GenomicRanges::strand(variant)) == '-'))
+  variant <- sort(c(variant, junctions), decreasing = (S4Vectors::runValue(BiocGenerics::strand(variant)) == '-'))
   variant <- c(tr, variant)
   variant$gene_exon_number[variant$type != 'exon'] <- NA
   variant[1]$tr_start <- 1L
@@ -118,9 +118,14 @@
 #'   Default \code{FALSE}
 #' @param probs_as_freq Should \code{event_probs} be treated as relative frequencies instead of probabilities?
 #'   Default \code{FALSE}
+#' @param save_exon_superset should the exon_supersets be saved to .rda file?
+#' Default \code{TRUE}
 #'
 #' @return if \code{exon_junction_coverage = TRUE} the exons, junctions and retained introns as data table in gtf style
-#'
+#' @import rtracklayer
+#' @importFrom stats runif setNames
+#' @importFrom methods as
+#' @importFrom parallel mclapply
 create_splicing_variants_and_annotation <-
   function(gtf_path,
            valid_chromosomes,
@@ -187,7 +192,7 @@ create_splicing_variants_and_annotation <-
           ))
         } else {
           neg_strand <-
-            S4Vectors::runValue(GenomicRanges::strand(orig_template)) == '-'
+            S4Vectors::runValue(BiocGenerics::strand(orig_template)) == '-'
           gene_id <- orig_template$gene_id[1]
           event_combs <- strsplit(construct, ',', T)
           available_exons <- length(orig_template)
@@ -241,17 +246,17 @@ create_splicing_variants_and_annotation <-
                 new_a3 <- res$new_a3
                 a3_index <- res$a3_index
                 if (neg_strand)
-                  end(variant[variant$gene_exon_number == a3_index]) <- new_a3
+                  BiocGenerics::end(variant[variant$gene_exon_number == a3_index]) <- new_a3
                 else
-                  start(variant[variant$gene_exon_number == a3_index]) <- new_a3
+                  BiocGenerics::start(variant[variant$gene_exon_number == a3_index]) <- new_a3
               }
               if ('a5' %in% comb) {
                 new_a5 <- res$new_a5
                 a5_index <- res$a5_index
                 if (neg_strand)
-                  start(variant[variant$gene_exon_number == a5_index]) <- new_a5
+                  BiocGenerics::start(variant[variant$gene_exon_number == a5_index]) <- new_a5
                 else
-                  end(variant[variant$gene_exon_number == a5_index]) <- new_a5
+                  BiocGenerics::end(variant[variant$gene_exon_number == a5_index]) <- new_a5
               }
               if ('ir' %in% comb) {
                 ir_indices <- as.integer(names(event_exons[['ir']]))
@@ -263,13 +268,13 @@ create_splicing_variants_and_annotation <-
                 flanking_exons <-
                   template[template$gene_exon_number %in% as.integer(names(event_exons$ir))]
                 ri <-
-                  GenomicRanges::gaps(flanking_exons, start = min(start(flanking_exons)))
+                  GenomicRanges::gaps(flanking_exons, start = min(BiocGenerics::start(flanking_exons)))
                 S4Vectors::mcols(ri) <-
                   S4Vectors::mcols(retaining_exon)
                 ri$tr_start <- retaining_exon$tr_start +
                   ifelse(neg_strand,
-                         (end(retaining_exon) - end(ri)),
-                         start(ri) - start(retaining_exon))
+                         (BiocGenerics::end(retaining_exon) - BiocGenerics::end(ri)),
+                         BiocGenerics::start(ri) - BiocGenerics::start(retaining_exon))
                 ri$tr_end <- ri$tr_start + IRanges::width(ri) - 1L
                 ri$type <- 'ri'
                 ri$transcript_id <-
@@ -320,7 +325,7 @@ create_splicing_variants_and_annotation <-
           event_annotation <-
             data.table::rbindlist(variants_and_event_annotation[event_annos])
           variants <-
-            unlist(as(variants_and_event_annotation[!event_annos], "GRangesList"),
+            unlist(methods::as(variants_and_event_annotation[!event_annos], "GRangesList"),
                    use.names = F)
 
           return(list(
@@ -338,7 +343,7 @@ create_splicing_variants_and_annotation <-
     all_variants_and_event_annotation <- unlist(all_variants_and_event_annotation, recursive = F)
     event_annos <- endsWith(names(all_variants_and_event_annotation), 'event_annotation')
     event_annotation <- data.table::rbindlist(all_variants_and_event_annotation[event_annos])
-    variants <- unlist(as(all_variants_and_event_annotation[!event_annos], "GRangesList"), use.names = F)
+    variants <- unlist(methods::as(all_variants_and_event_annotation[!event_annos], "GRangesList"), use.names = F)
     message('finished creating splicing variants and annotation')
     message('')
 
@@ -351,8 +356,8 @@ create_splicing_variants_and_annotation <-
                         file.path(outdir, 'splicing_variants.gtf'))
     if (write_gff) {
       # create Id and Parent field before exporting
-      variants$ID <- character(length(variants))
       variants$Parent <- character(length(variants))
+      variants$ID <- character(length(variants))
       variants$ID[gene_idx] <- variants$gene_id[gene_idx]
       variants$Parent[gene_idx] <- NA
       variants$ID[transcript_idx] <- variants$transcript_id[transcript_idx]

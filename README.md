@@ -40,7 +40,7 @@ at <https://github.com/quirinmanz/polyester>
 suppressMessages(library(ass))
 
 # create exon superset for genes on chromosome 21 of ensembl release 99
-gtf_file = system.file('data', 'Homo_sapiens.GRCh38.99.21.gtf', package = 'ass')
+gtf_file = system.file('extdata', 'Homo_sapiens.GRCh38.99.21.gtf', package = 'ass')
 # by default the produed superset will be saved as .rda file into the same directory
 exon_superset = get_exon_supersets(gtf_file)
 #> importing gtf...
@@ -114,8 +114,8 @@ num_reps = c(1,1)
 
 # we can use the previously created superset to simulate splice variants from, since it is saved in the same directory as the gtf
 # if no superset is found, a new one will be created
-simulate_alternative_splicing(input_dir = system.file('data', package = 'ass'),
-                              event_probs = event_freq, 
+simulate_alternative_splicing(input_dir = system.file('extdata', package = 'ass'),
+                              event_probs = event_freq,
                               outdir = 'simulation', 
                               probs_as_freq = probs_as_freq, 
                               max_genes = max_genes,
@@ -139,11 +139,11 @@ simulate_alternative_splicing(input_dir = system.file('data', package = 'ass'),
 #> parsing gtf and sequences...
 #> done parsing
 #> start sequencing... (1m reads per iteration)
-#> sample_01: overall 38753 reads
+#> sample_01: overall 20707 reads
 #> sample_01: iteration 01
 #> sample_01: fragments generated
 #> sample_01: write read pairs
-#> sample_02: overall 41504 reads
+#> sample_02: overall 33639 reads
 #> sample_02: iteration 01
 #> sample_02: fragments generated
 #> sample_02: write read pairs

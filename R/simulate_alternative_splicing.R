@@ -141,6 +141,9 @@
 #'
 #'   Parameters passed to polyester that we assigned different defaults to than in \code{\link{simulate_experiment}}:
 #'   \itemize{
+#'   \item \code{fold_changes}: Currently, ass introduces random isform switches. 
+#'   Those can be retraced in the sim_tx_info.txt file written by polyester.
+#'   We plan on improving this in the future.
 #'   \item \code{readlen}: Read length. Default 150.
 #'   \item \code{strand_specific}: Strand-specific simulation (1st read forward strand,
 #'   2nd read reverse strand with respect to transcript sequence). Default \code{TRUE}.
@@ -161,9 +164,12 @@
 #' @return No return, but simulated reads, a simulation info file,
 #'   an alternative splicing event annotation and exon and junction coverages are written
 #'   to \code{outdir}.
-#'
-#' @export
 #' 
+#' @export
+#' @import data.table
+#' @importFrom stats runif
+#' @importFrom polyester simulate_experiment
+#' @importFrom parallel mclapply
 
 simulate_alternative_splicing <-
   function(input_dir,
@@ -251,6 +257,7 @@ simulate_alternative_splicing <-
 # max_genes = 16
 # multi_events_per_exon = T
 # prob_as_freq = T
+# seq_depth = 2e06
 # params = list(
 #   ncores = 4,
 #   input_dir = '../ensembl_data/Homo_sapiens.GRCh38.99/',
@@ -259,14 +266,13 @@ simulate_alternative_splicing <-
 #              c('es', 'mes', 'ir', 'a3', 'a5', 'afe', 'ale', 'mee')),
 #   max_genes = max_genes,
 #   outdir = sprintf(
-#     'outdir/maxGenes%d_multiEventsPerExon%s_eventsAsFreq%s',
+#     '../ensembl_data/Homo_sapiens.GRCh38.99_out/maxGenes%d_SeqDepth%d_multiEventsPerExon%s_eventsAsFreq%s',
 #     max_genes,
+#     seq_depth,
 #     multi_events_per_exon,
 #     prob_as_freq
 #   ),
-#   gzip = T,
-#   write_gff = T,
-#   verbose = T,
+#   seq_depth = seq_depth,
 #   multi_events_per_exon = multi_events_per_exon,
 #   prob_as_freq = prob_as_freq
 # )

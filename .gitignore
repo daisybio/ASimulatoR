@@ -4,10 +4,9 @@
 .Rhistory
 .RData
 .Ruserdata
-packrat/lib*/
-outdir*
 .Rhistory
 .DS_Store
-plots/*
+plots/
 singularity/
 .RData
+simulation/

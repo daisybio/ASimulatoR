@@ -25,8 +25,8 @@ get_event_annotation <-
           'afe',
           variant$transcript_id[1],
           template$transcript_id[1],
-          start(variant[1]),
-          end(variant[1]),
+          BiocGenerics::start(variant[1]),
+          BiocGenerics::end(variant[1]),
           variant[1]$tr_start,
           variant[1]$tr_end
         ),
@@ -34,8 +34,8 @@ get_event_annotation <-
           'afe',
           template$transcript_id[1],
           variant$transcript_id[1],
-          start(template[1]),
-          end(template[1]),
+          BiocGenerics::start(template[1]),
+          BiocGenerics::end(template[1]),
           template[1]$tr_start,
           template[1]$tr_end
         )
@@ -50,8 +50,8 @@ get_event_annotation <-
           'ale',
           variant$transcript_id[1],
           template$transcript_id[1],
-          start(variant[variant_length]),
-          end(variant[variant_length]),
+          BiocGenerics::start(variant[variant_length]),
+          BiocGenerics::end(variant[variant_length]),
           variant[variant_length]$tr_start,
           variant[variant_length]$tr_end
         ),
@@ -59,8 +59,8 @@ get_event_annotation <-
           'ale',
           template$transcript_id[1],
           variant$transcript_id[1],
-          start(template[template_length]),
-          end(template[template_length]),
+          BiocGenerics::start(template[template_length]),
+          BiocGenerics::end(template[template_length]),
           template[template_length]$tr_start,
           template[template_length]$tr_end
         )
@@ -79,8 +79,8 @@ get_event_annotation <-
           'mee',
           variant$transcript_id[1],
           template$transcript_id[1],
-          start(variant_exon),
-          end(variant_exon),
+          BiocGenerics::start(variant_exon),
+          BiocGenerics::end(variant_exon),
           variant_exon$tr_start,
           variant_exon$tr_end
         ),
@@ -88,8 +88,8 @@ get_event_annotation <-
           'mee',
           template$transcript_id[1],
           variant$transcript_id[1],
-          start(template_exon),
-          end(template_exon),
+          BiocGenerics::start(template_exon),
+          BiocGenerics::end(template_exon),
           template_exon$tr_start,
           template_exon$tr_end
         )
@@ -103,8 +103,8 @@ get_event_annotation <-
           'mes',
           variant$transcript_id[1],
           template$transcript_id[1],
-          paste(start(skipped_exons), collapse = ','),
-          paste(end(skipped_exons), collapse = ','),
+          paste(BiocGenerics::start(skipped_exons), collapse = ','),
+          paste(BiocGenerics::end(skipped_exons), collapse = ','),
           paste(skipped_exons$tr_start, collapse = ','),
           paste(skipped_exons$tr_end, collapse = ',')
         )
@@ -118,8 +118,8 @@ get_event_annotation <-
           'es',
           variant$transcript_id[1],
           template$transcript_id[1],
-          start(skipped_exon),
-          end(skipped_exon),
+          BiocGenerics::start(skipped_exon),
+          BiocGenerics::end(skipped_exon),
           skipped_exon$tr_start,
           skipped_exon$tr_end
         )
@@ -133,8 +133,8 @@ get_event_annotation <-
           'ir',
           variant$transcript_id[1],
           template$transcript_id[1],
-          start(ri),
-          end(ri),
+          BiocGenerics::start(ri),
+          BiocGenerics::end(ri),
           ri$tr_start,
           ri$tr_end
         )
@@ -143,7 +143,7 @@ get_event_annotation <-
     if ('a3' %in% comb) {
       new_a3 <- parent.frame()$new_a3
       alt_exon <- template[template$gene_exon_number == parent.frame()$a3_index]
-      old_a3 <- ifelse(neg_strand, end(alt_exon), start(alt_exon))
+      old_a3 <- ifelse(neg_strand, BiocGenerics::end(alt_exon), BiocGenerics::start(alt_exon))
       skipped_bases <- abs(old_a3 - new_a3)
       event_annotation <- data.table::rbindlist(list(
         event_annotation,
@@ -161,7 +161,7 @@ get_event_annotation <-
     if ('a5' %in% comb) {
       new_a5 <- parent.frame()$new_a5
       alt_exon <- template[template$gene_exon_number == parent.frame()$a5_index]
-      old_a5 <- ifelse(neg_strand, start(alt_exon), end(alt_exon))
+      old_a5 <- ifelse(neg_strand, BiocGenerics::start(alt_exon), BiocGenerics::end(alt_exon))
       skipped_bases <- abs(old_a5 - new_a5)
       event_annotation <- data.table::rbindlist(list(
         event_annotation,

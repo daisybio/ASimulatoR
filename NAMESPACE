@@ -2,3 +2,10 @@
 
 export(get_exon_supersets)
 export(simulate_alternative_splicing)
+import(data.table)
+import(rtracklayer)
+importFrom(methods,as)
+importFrom(parallel,mclapply)
+importFrom(polyester,simulate_experiment)
+importFrom(stats,runif)
+importFrom(stats,setNames)

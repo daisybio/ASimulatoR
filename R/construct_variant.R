@@ -59,7 +59,7 @@ construct_variant <-
   if ('a3' %in% comb) {
     result$a3_index <- as.integer(names(event_exons[['a3']][2]))
     result$new_a3 <-
-      draw_one_sample_safely((start(orig_template)[result$a3_index] + 1):(end(orig_template)[result$a3_index] - 1))
+      draw_one_sample_safely((BiocGenerics::start(orig_template)[result$a3_index] + 1):(end(orig_template)[result$a3_index] - 1))
   }
   
   if ('a5' %in% comb) {
@@ -67,7 +67,7 @@ construct_variant <-
     if (!is.null(event_exons[['a3']]) &&
         result$a5_index == result$a3_index) {
       result$new_a5 <- ifelse(neg_strand,
-                       draw_one_sample_safely((start(
+                       draw_one_sample_safely((BiocGenerics::start(
                          orig_template
                        )[result$a5_index] + 1):(result$new_a3 - 1)),
                        draw_one_sample_safely((result$new_a3 + 1):(end(
@@ -76,7 +76,7 @@ construct_variant <-
     }
     else
       result$new_a5 <-
-        draw_one_sample_safely((start(orig_template)[result$a5_index] + 1):(end(orig_template)[result$a5_index] - 1))
+        draw_one_sample_safely((BiocGenerics::start(orig_template)[result$a5_index] + 1):(end(orig_template)[result$a5_index] - 1))
   }
   if (multi_events_per_exon) {
     result$variant <-

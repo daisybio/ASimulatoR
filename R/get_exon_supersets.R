@@ -11,7 +11,8 @@
 #'
 #' @export
 #' @return exon supersets generated from gtf file
-#'
+#' @import rtracklayer
+#' @importFrom parallel mclapply
 get_exon_supersets <-
   function(gtf_path, valid_chromosomes=NULL, ncores=1L, save=TRUE) {
     exon_supersets_path <- sprintf('%s.exon_superset.rda', gtf_path)
@@ -45,7 +46,7 @@ get_exon_supersets <-
         parallel::mclapply(exon_supersets, function(gene) {
           template <- GenomicRanges::reduce(gene)
           neg_strand <-
-            S4Vectors::runValue(GenomicRanges::strand(gene)) == '-'
+            S4Vectors::runValue(BiocGenerics::strand(gene)) == '-'
           if (neg_strand)
             template <- rev(template)
           gene_id <- gene$gene_id[1]
