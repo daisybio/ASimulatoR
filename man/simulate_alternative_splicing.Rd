@@ -68,7 +68,9 @@ Reads are simulated from a GTF file which is pruduced by
 
   Parameters passed to polyester that we assigned different defaults to than in \code{\link{simulate_experiment}}:
   \itemize{
-  \item \code{fold_changes}: Currently, ass introduces random isformswitches. Wen plan on improiving this in the future.
+  \item \code{fold_changes}: Currently, ass introduces random isform switches. 
+  Those can be retraced in the sim_tx_info.txt file written by polyester.
+  We plan on improving this in the future.
   \item \code{readlen}: Read length. Default 150.
   \item \code{strand_specific}: Strand-specific simulation (1st read forward strand,
   2nd read reverse strand with respect to transcript sequence). Default \code{TRUE}.
