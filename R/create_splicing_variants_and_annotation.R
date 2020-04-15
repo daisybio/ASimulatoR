@@ -162,6 +162,9 @@ create_splicing_variants_and_annotation <-
       construct <- names(event_probs)[construct]
       get_min_nr_exons(min_nr_exons_per_event, construct, multi_events_per_exon)
     })
+    decr <- order(min_nr_exons, decreasing = T)
+    min_nr_exons <- min_nr_exons[decr]
+    construct_all_list <- construct_all_list[decr]
     drawn_genes <- character(nr_genes)
     for (i in 1:nr_genes) {
       if (min_nr_exons[i] > 0) {
