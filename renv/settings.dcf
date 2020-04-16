@@ -1,5 +1,5 @@
 external.libraries:
-ignored.packages:
+ignored.packages: ggbio
 package.dependency.fields: Imports, Depends, LinkingTo
 snapshot.type: implicit
 use.cache: TRUE

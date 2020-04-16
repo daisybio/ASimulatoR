@@ -4,10 +4,11 @@
 ^\.Rproj\.user$
 ^packrat/
 ^\.Rprofile$
-.gitignore
-README.md
 ^README\.Rmd$
 ^Dockerfile$
 ^\.github$
 ^simulation$
 ^inst/extdata/Homo_sapiens.GRCh38.99.21.gtf.exon_superset.rda$
+^R/dependencies\.R$
+^README\.md$
+^renv/\.gitignore$
