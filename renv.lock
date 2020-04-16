@@ -537,8 +537,8 @@
       "RemoteRepo": "polyester",
       "RemoteUsername": "quirinmanz",
       "RemoteRef": "master",
-      "RemoteSha": "5543977327abbbd6e0b177534858f66d0be76972",
-      "Hash": "cc54dad661648dd180cf9b5637f08cfb"
+      "RemoteSha": "df45edf691a53de075e830fe01d44447582c984c",
+      "Hash": "219462eec1139066ea755849148aca54"
     },
     "praise": {
       "Package": "praise",
