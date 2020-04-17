@@ -4,6 +4,7 @@ RUN apt-get update && apt-get install -y libcurl4-openssl-dev libxml2-dev libssl
 RUN mkdir /ass /input /output
 COPY ./ /ass
 WORKDIR /ass
+COPY /input/runASS.R /output/runASS.R
 
 ENV RENV_VERSION 0.9.3-71
 RUN R -e "install.packages('remotes', repos = c(CRAN = 'https://cloud.r-project.org')); \

@@ -1,5 +1,5 @@
 external.libraries:
-ignored.packages: ggbio
+ignored.packages: ggbio, Rd2md
 package.dependency.fields: Imports, Depends, LinkingTo
 snapshot.type: implicit
 use.cache: TRUE

@@ -52,52 +52,23 @@ exon_superset = get_exon_supersets(gtf_file)
 #> saving superset...
 #> finished saving superset
 #> 
-exon_superset[[1]]
-#> GRanges object with 32 ranges and 10 metadata columns:
-#>        seqnames            ranges strand |       source        type       score
-#>           <Rle>         <IRanges>  <Rle> |  <character> <character> <character>
-#>    [1]       21 41879270-41879482      - | as_simulator        exon           .
-#>    [2]       21 41878996-41879140      - | as_simulator        exon           .
-#>    [3]       21 41878695-41878860      - | as_simulator        exon           .
-#>    [4]       21 41871494-41871621      - | as_simulator        exon           .
-#>    [5]       21 41867300-41867377      - | as_simulator        exon           .
-#>    ...      ...               ...    ... .          ...         ...         ...
-#>   [28]       21 41815705-41815836      - | as_simulator        exon           .
-#>   [29]       21 41810154-41814962      - | as_simulator        exon           .
-#>   [30]       21 41804534-41804723      - | as_simulator        exon           .
-#>   [31]       21 41802712-41803118      - | as_simulator        exon           .
-#>   [32]       21 41798225-41801722      - | as_simulator        exon           .
-#>              phase         gene_id            transcript_id  template
-#>        <character>     <character>              <character> <logical>
-#>    [1]           . ENSG00000141956 ENSG00000141956_template      TRUE
-#>    [2]           . ENSG00000141956 ENSG00000141956_template      TRUE
-#>    [3]           . ENSG00000141956 ENSG00000141956_template      TRUE
-#>    [4]           . ENSG00000141956 ENSG00000141956_template      TRUE
-#>    [5]           . ENSG00000141956 ENSG00000141956_template      TRUE
-#>    ...         ...             ...                      ...       ...
-#>   [28]           . ENSG00000141956 ENSG00000141956_template      TRUE
-#>   [29]           . ENSG00000141956 ENSG00000141956_template      TRUE
-#>   [30]           . ENSG00000141956 ENSG00000141956_template      TRUE
-#>   [31]           . ENSG00000141956 ENSG00000141956_template      TRUE
-#>   [32]           . ENSG00000141956 ENSG00000141956_template      TRUE
-#>        gene_exon_number  tr_start    tr_end
-#>               <integer> <integer> <integer>
-#>    [1]                1         1       213
-#>    [2]                2       214       358
-#>    [3]                3       359       524
-#>    [4]                4       525       652
-#>    [5]                5       653       730
-#>    ...              ...       ...       ...
-#>   [28]               28      3969      4100
-#>   [29]               29      4101      8909
-#>   [30]               30      8910      9099
-#>   [31]               31      9100      9506
-#>   [32]               32      9507     13004
+exon_superset[[1]][1:5, ]
+#> GRanges object with 5 ranges and 10 metadata columns:
+#>       seqnames            ranges strand |       source        type       score       phase         gene_id            transcript_id  template gene_exon_number  tr_start    tr_end
+#>          <Rle>         <IRanges>  <Rle> |  <character> <character> <character> <character>     <character>              <character> <logical>        <integer> <integer> <integer>
+#>   [1]       21 41879270-41879482      - | as_simulator        exon           .           . ENSG00000141956 ENSG00000141956_template      TRUE                1         1       213
+#>   [2]       21 41878996-41879140      - | as_simulator        exon           .           . ENSG00000141956 ENSG00000141956_template      TRUE                2       214       358
+#>   [3]       21 41878695-41878860      - | as_simulator        exon           .           . ENSG00000141956 ENSG00000141956_template      TRUE                3       359       524
+#>   [4]       21 41871494-41871621      - | as_simulator        exon           .           . ENSG00000141956 ENSG00000141956_template      TRUE                4       525       652
+#>   [5]       21 41867300-41867377      - | as_simulator        exon           .           . ENSG00000141956 ENSG00000141956_template      TRUE                5       653       730
 #>   -------
 #>   seqinfo: 1 sequence from an unspecified genome; no seqlengths
 ```
 
 ### Simulating Alternative Splicing
+
+You can find more information about the main function of this package at
+the end of the page.
 
 ``` r
 # now we create splice variants from 9 exon supersets
@@ -139,31 +110,15 @@ simulate_alternative_splicing(input_dir = system.file('extdata', package = 'ass'
 #> parsing gtf and sequences...
 #> done parsing
 #> start sequencing... (1m reads per iteration)
-#> sample_01: overall 20707 reads
+#> sample_01: overall 15742 reads
 #> sample_01: iteration 01
 #> sample_01: fragments generated
 #> sample_01: write read pairs
-#> sample_02: overall 33639 reads
+#> sample_02: overall 17058 reads
 #> sample_02: iteration 01
 #> sample_02: fragments generated
 #> sample_02: write read pairs
 #> finished sequencing
-```
-
-### Check AS Event Annotation
-
-``` r
-event_anno = read.csv('simulation/event_annotation.tsv', sep = '\t')
-event_anno[event_anno$event_annotation == 'es',]
-#>    event_annotation                                     variant
-#> 1                es                          ENSG00000183844_es
-#> 19               es ENSG00000273840_es,ir,mes,a3,a5,afe,ale,mee
-#>                    template genomic_start genomic_end transcriptomic_start
-#> 1  ENSG00000183844_template      41347013    41347100                 2988
-#> 19 ENSG00000273840_template      10491540    10491644                  225
-#>    transcriptomic_end
-#> 1                3075
-#> 19                329
 ```
 
 <!-- What is special about using `README.Rmd` instead of just `README.md`? You can include R chunks like so: -->
@@ -183,8 +138,10 @@ event_anno[event_anno$event_annotation == 'es',]
 ``` r
 # to visualitze the splice variants we will use ggbio
 suppressMessages(library(ggbio))
+
 # firstly, we load the newly created gtf file 
 gtf = rtracklayer::import('simulation/splicing_variants.gtf')
+
 # the gene id of the variant with all events
 gene_id = gtf$gene_id[grep('es,ir,mes,a3,a5,afe,ale,mee', gtf$transcript_id, fixed = T)[1]]
 exons = gtf[gtf$type == 'exon' & gtf$gene_id == gene_id]
@@ -193,5 +150,125 @@ suppressWarnings(ggbio::autoplot(split(exons, exons$transcript_id)))
 ```
 
 <img src="man/figures/README-visualization-1.png" width="100%" />
+
+``` r
+
+# check annotation
+event_anno = read.csv('simulation/event_annotation.tsv', sep = '\t')
+event_anno[grepl(gene_id, event_anno$template) | grepl(gene_id, event_anno$variant), ]
+#>    event_annotation                                     variant                                    template                                                                    genomic_start                                                                      genomic_end                         transcriptomic_start                           transcriptomic_end
+#> 1               afe ENSG00000154646_es,ir,mes,a3,a5,afe,ale,mee                    ENSG00000154646_template                                                                         18460572                                                                         18460731                                            1                                          160
+#> 2               afe                    ENSG00000154646_template ENSG00000154646_es,ir,mes,a3,a5,afe,ale,mee                                                                         18485799                                                                         18485879                                            1                                           81
+#> 3               ale ENSG00000154646_es,ir,mes,a3,a5,afe,ale,mee                    ENSG00000154646_template                                                                         18269116                                                                         18270124                                         6950                                         7958
+#> 4               ale                    ENSG00000154646_template ENSG00000154646_es,ir,mes,a3,a5,afe,ale,mee                                                                         18275197                                                                         18275336                                         3018                                         3157
+#> 5               mee ENSG00000154646_es,ir,mes,a3,a5,afe,ale,mee                    ENSG00000154646_template                                                                         18379283                                                                         18379318                                          792                                          827
+#> 6               mee                    ENSG00000154646_template ENSG00000154646_es,ir,mes,a3,a5,afe,ale,mee                                                                         18372193                                                                         18372324                                          786                                          917
+#> 7               mes ENSG00000154646_es,ir,mes,a3,a5,afe,ale,mee                    ENSG00000154646_template 18332084,18329169,18326432,18315146,18312945,18297734,18294603,18294270,18281040 18332173,18329294,18326572,18315256,18313077,18297829,18294652,18294444,18281221 1818,1908,2034,2175,2286,2419,2515,2565,2740 1907,2033,2174,2285,2418,2514,2564,2739,2921
+#> 8                es ENSG00000154646_es,ir,mes,a3,a5,afe,ale,mee                    ENSG00000154646_template                                                                         18352903                                                                         18353052                                         1275                                         1424
+#> 9                ir ENSG00000154646_es,ir,mes,a3,a5,afe,ale,mee                    ENSG00000154646_template                                                                         18359864                                                                         18365139                                         1223                                         6498
+#> 10               a3 ENSG00000154646_es,ir,mes,a3,a5,afe,ale,mee                    ENSG00000154646_template                                                                         18383728                                                                         18383778                                          589                                          639
+#> 11               a5 ENSG00000154646_es,ir,mes,a3,a5,afe,ale,mee                    ENSG00000154646_template                                                                         18398199                                                                         18398220                                          499                                          520
+```
+
+## `simulate_alternative_splicing`: Simulate RNA-seq experiment with splicing variants
+
+### Description
+
+Firstly, exon supersets are created by joining all exons of a gene from
+a gtf file. Next, splicing variants are created with documentation and
+event annotation based on the users input. Finally, fastq files
+containing RNA-seq reads from the splice variants and the real exon and
+junction coverage are created using a modified version of the polyester
+R package available on
+<https://github.com/quirinmanz/polyester>.
+
+### Usage
+
+``` r
+simulate_alternative_splicing(input_dir, event_probs, outdir, ncores = 1L, ...)
+```
+
+### Arguments
+
+| Argument      | Description                                                                                                                                                                                                                                                                                    |
+| ------------- | ---------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
+| `input_dir`   | Character path to directory containing the gtf file from which splice variants are created and genome fasta files passed to polyester.                                                                                                                                                         |
+| `event_probs` | Named list/vector containing numerics corresponding to the probabilites to create the event(combination). If `probs_as_freq` is `TRUE` `event_probs` correspond to the relative frequency of occurences for the event(combination) and in this case the sum of all frequencies has to be \<=1. |
+| `outdir`      | character, path to folder where simulated reads and all annotations should be written, with *no* slash at the end. By default, reads are written to current working directory.                                                                                                                 |
+| `ncores`      | the number of cores to be utilized for parallel generation of splice variant creation and read simulation.                                                                                                                                                                                     |
+| `...`         | any of several other arguments that can be used to add nuance to the simulation and splice variant creation. See details.                                                                                                                                                                      |
+
+### Details
+
+Reads are simulated from a GTF file which is pruduced by
+`create_splicing_variants_and_annotation` plus DNA sequences.
+
+Several optional parameters can be passed to this function to adjust the
+simulation. For polyester parameters refer to `simulate_experiment` from
+the polyester R package:
+
+  - `write_gff` : Additionally to the gtf file containing the splice
+    variants, a gff3 file with the same content will be printed to the
+    outdir. Default `TRUE`
+
+  - `max_genes` : The maximum number of genes/exon supersets to be
+    included in the process of splice variant creation. Default `NULL`
+    which means that all available exon supersets will be used.
+
+  - `exon_junction_coverage` : Should the real coverage of exons,
+    junctions and retained introns should be written into a additional
+    file. Default `TRUE`
+
+  - `multi_events_per_exon` : Should it be possible to have more than
+    one AS event at the same exon if multiple variants are created for
+    the same exon superset? \!If this option is set to `TRUE` , there
+    may occur unforeseen AS events that are not documented in the
+    event\_annotation file\!. Default `FALSE`
+
+  - `probs_as_freq` : Should `event_probs` be treated as relative
+    frequencies instead of probabilities? Default `FALSE`
+
+  - `save_exon_superset` : Should the exon supersets be saved to .rda
+    file? Default `TRUE`
+
+Parameters passed to polyester that we assigned different defaults to
+than in `simulate_experiment`:
+
+  - `fold_changes` : Currently, ass introduces random isform switches.
+    Those can be retraced in the sim\_tx\_info.txt file written by
+    polyester. We plan on improving this in the future.
+
+  - `readlen` : Read length. Default 150.
+
+  - `strand_specific` : Strand-specific simulation (1st read forward
+    strand, 2nd read reverse strand with respect to transcript
+    sequence). Default `TRUE` .
+
+  - `meanmodel` : `reads_per_transcripts` as a function of transcript
+    length. Default `TRUE` .
+
+  - `verbose` : Should progress messages be printed during the
+    sequencing process? Default `TRUE` .
+
+  - `exon_junction_coverage` : Should the coverage of exons, junctions
+    and retained introns be determined? Default `TRUE` .
+
+  - `exon_junction_table` : If `exon_junction_coverage=TRUE` a
+    `data.table` produced by `create_splicing_variants_and_annotation`
+    to determine exon and intron coverage.
+
+### Value
+
+No return, but simulated reads, a simulation info file, an alternative
+splicing event annotation and exon and junction coverages are written to
+`outdir` .
+
+### References
+
+Alyssa C. Frazee, Andrew E. Jaffe, Ben Langmead, Jeffrey T. Leek,
+Polyester: simulating RNA-seq datasets with differential transcript
+expression, Bioinformatics, Volume 31, Issue 17, 1 September 2015, Pages
+2778–2784,
+<https://doi.org/10.1093/bioinformatics/btv272>
 
 <!-- In that case, don't forget to commit and push the resulting figure files, so they display on GitHub! -->
