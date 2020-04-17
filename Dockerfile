@@ -13,4 +13,4 @@ RUN R -e "install.packages('remotes', repos = c(CRAN = 'https://cloud.r-project.
   devtools::install(quick = T)"
 
 # usage: docker run --user $(id -u):$(id -g) -v input_host:/input -v ouput_host:/output_container image
-ENTRYPOINT cp /input/runASS.R /output/runASS.R && Rscript /input/runASS.R /input /output
+ENTRYPOINT Rscript /input/runASS.R /input /output
