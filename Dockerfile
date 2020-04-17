@@ -4,7 +4,6 @@ RUN apt-get update && apt-get install -y libcurl4-openssl-dev libxml2-dev libssl
 RUN mkdir /ass /input /output
 COPY ./ /ass
 WORKDIR /ass
-COPY /input/runASS.R /output/runASS.R
 
 ENV RENV_VERSION 0.9.3-71
 RUN R -e "install.packages('remotes', repos = c(CRAN = 'https://cloud.r-project.org')); \
@@ -14,4 +13,4 @@ RUN R -e "install.packages('remotes', repos = c(CRAN = 'https://cloud.r-project.
   devtools::install(quick = T)"
 
 # usage: docker run --user $(id -u):$(id -g) -v input_host:/input -v ouput_host:/output_container image
-ENTRYPOINT Rscript /input/runASS.R /input /output
+ENTRYPOINT cp /input/runASS.R /output/runASS.R && Rscript /input/runASS.R /input /output
