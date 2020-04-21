@@ -238,8 +238,6 @@ than in `simulate_experiment`:
     Those can be retraced in the sim\_tx\_info.txt file written by
     polyester. We plan on improving this in the future.
 
-  - `readlen` : Read length. Default 150.
-
   - `strand_specific` : Strand-specific simulation (1st read forward
     strand, 2nd read reverse strand with respect to transcript
     sequence). Default `TRUE` .

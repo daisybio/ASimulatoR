@@ -41,10 +41,6 @@
     args$fastq <- T
   else
     stopifnot(is.logical(args$fastq))
-  if (is.null(args$readlen))
-    args$readlen <- 150
-  else
-    stopifnot(is.numeric(args$readlen))
   if (is.null(args$write_gff))
     args$write_gff <- T
   else
@@ -144,7 +140,6 @@
 #'   \item \code{fold_changes}: Currently, ass introduces random isform switches. 
 #'   Those can be retraced in the sim_tx_info.txt file written by polyester.
 #'   We plan on improving this in the future.
-#'   \item \code{readlen}: Read length. Default 150.
 #'   \item \code{strand_specific}: Strand-specific simulation (1st read forward strand,
 #'   2nd read reverse strand with respect to transcript sequence). Default \code{TRUE}.
 #'   \item \code{meanmodel}: \code{reads_per_transcripts} as a function of transcript length. Default \code{TRUE}.
