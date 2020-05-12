@@ -13,7 +13,7 @@ from which splice variants are created and genome fasta files passed to polyeste
 \item{event_probs}{Named list/vector containing numerics corresponding
 to the probabilites to create the event(combination). 
 If \code{probs_as_freq} is \code{TRUE} \code{event_probs} correspond 
-to the relative frequency of occurences for the event(combination) and 
+to the relative frequency of occurences for the event (combination) and 
 in this case the sum of all frequencies has to be <=1.}
 
 \item{outdir}{character, path to folder where simulated reads and all
@@ -38,7 +38,7 @@ Finally, fastq files containing RNA-seq reads from the splice variants and the r
 are created using a modified version of the polyester R package available on https://github.com/quirinmanz/polyester.
 }
 \details{
-Reads are simulated from a GTF file which is pruduced by 
+Reads are simulated from a GTF file which is produced by 
   \code{\link{create_splicing_variants_and_annotation}} plus DNA
   sequences.
 
@@ -53,7 +53,7 @@ Reads are simulated from a GTF file which is pruduced by
   in the process of splice variant creation. 
   Default \code{NULL} which means that all available exon supersets will be used.
   \item \code{exon_junction_coverage}: Should the real coverage of exons, junctions 
-  and retained introns should be written into a additional file.
+  and retained introns be written into a additional file.
   Default \code{TRUE}
   \item \code{multi_events_per_exon}: Should it be possible to have more than one AS event 
   at the same exon if multiple variants are created for the same exon superset?
@@ -68,7 +68,7 @@ Reads are simulated from a GTF file which is pruduced by
 
   Parameters passed to polyester that we assigned different defaults to than in \code{\link{simulate_experiment}}:
   \itemize{
-  \item \code{fold_changes}: Currently, ass introduces random isform switches. 
+  \item \code{fold_changes}: Currently, ass introduces random isoform switches. 
   Those can be retraced in the sim_tx_info.txt file written by polyester.
   We plan on improving this in the future.
   \item \code{strand_specific}: Strand-specific simulation (1st read forward strand,

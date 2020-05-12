@@ -97,7 +97,7 @@
 #' @param event_probs Named list/vector containing numerics corresponding
 #'  to the probabilites to create the event(combination). 
 #'  If \code{probs_as_freq} is \code{TRUE} \code{event_probs} correspond 
-#'  to the relative frequency of occurences for the event(combination) and 
+#'  to the relative frequency of occurences for the event (combination) and 
 #'  in this case the sum of all frequencies has to be <=1.
 #' @param outdir character, path to folder where simulated reads and all
 #'   annotations should be written, with *no* slash at the end. By default,
@@ -107,7 +107,7 @@
 #' @param ... any of several other arguments that can be used to add nuance
 #'   to the simulation and splice variant creation. See details.
 #'
-#' @details Reads are simulated from a GTF file which is pruduced by 
+#' @details Reads are simulated from a GTF file which is produced by 
 #'   \code{\link{create_splicing_variants_and_annotation}} plus DNA
 #'   sequences.
 #'
@@ -122,7 +122,7 @@
 #'   in the process of splice variant creation. 
 #'   Default \code{NULL} which means that all available exon supersets will be used.
 #'   \item \code{exon_junction_coverage}: Should the real coverage of exons, junctions 
-#'   and retained introns should be written into a additional file.
+#'   and retained introns be written into a additional file.
 #'   Default \code{TRUE}
 #'   \item \code{multi_events_per_exon}: Should it be possible to have more than one AS event 
 #'   at the same exon if multiple variants are created for the same exon superset?
@@ -137,7 +137,7 @@
 #'
 #'   Parameters passed to polyester that we assigned different defaults to than in \code{\link{simulate_experiment}}:
 #'   \itemize{
-#'   \item \code{fold_changes}: Currently, ass introduces random isform switches. 
+#'   \item \code{fold_changes}: Currently, ass introduces random isoform switches. 
 #'   Those can be retraced in the sim_tx_info.txt file written by polyester.
 #'   We plan on improving this in the future.
 #'   \item \code{strand_specific}: Strand-specific simulation (1st read forward strand,

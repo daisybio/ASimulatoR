@@ -1,24 +1,12 @@
 
-<!-- README.md is generated from README.Rmd. Please edit that file -->
-
 # ass
 
-<!-- badges: start -->
-
-<!-- badges: end -->
-
 The goal of ass is to simulate RNA-seq reads with alternative splicing
-events.
+events. The alternative splicing events are well documented and the true
+origin of each read is used for exon and juntion coverage via a modified
+version of the bioconductor polyester package.
 
 ## Installation
-
-<!-- You can install the released version of ass from [CRAN](https://CRAN.R-project.org) with: -->
-
-<!-- ``` r -->
-
-<!-- install.packages("ass") -->
-
-<!-- ``` -->
 
 You can install the development version from
 [GitHub](https://github.com/) with:
@@ -26,22 +14,28 @@ You can install the development version from
 ``` r
 # install.packages("remotes")
 Sys.setenv(GITHUB_PAT = "16946cf3c89e74cd07363d0f660559e4339d730b")
-remotes::install_github("biomedbigdata/as_simulator")
+remotes::install_github("biomedbigdata/ass")
 ```
 
-Please note that we use a custon Version of Polyester, that is available
+Please note that we use a custom version of Polyester, that is available
 at <https://github.com/quirinmanz/polyester>
 
 ## Example
 
 ### Creating exon supersets
 
+Firstly, we create exon supersets by joining all exons of a gene from a
+gtf file. These supersets are then used to create splice variants. Since
+all exons from one gene are used to create the exon superset, you may
+find that the term exon superset is used analogously to gene.
+
 ``` r
 suppressMessages(library(ass))
 
 # create exon superset for genes on chromosome 21 of ensembl release 99
 gtf_file = system.file('extdata', 'Homo_sapiens.GRCh38.99.21.gtf', package = 'ass')
-# by default the produed superset will be saved as .rda file into the same directory
+
+# by default the produced superset will be saved as .rda file into the same directory
 exon_superset = get_exon_supersets(gtf_file)
 #> importing gtf...
 #> finished importing gtf
@@ -70,24 +64,54 @@ exon_superset[[1]][1:5, ]
 You can find more information about the main function of this package at
 the end of the page.
 
-``` r
-# now we create splice variants from 9 exon supersets
-max_genes = 9
+This simulator supports eight different AS events:
 
-# to create one variant per gene we set prob_as_freq to TRUE and then produce one of each AS events as well as one variant containing every event
+| es           | mes                    | ir               | a3                                  | a5                               | mee                      | afe                    | ale                   |
+| ------------ | ---------------------- | ---------------- | ----------------------------------- | -------------------------------- | ------------------------ | ---------------------- | --------------------- |
+| exon skiping | multiple exon skipping | intron retention | alternative 3’/acceptor splice site | alternative 5’/donor splice site | mutually exclusive exons | alternative first exon | alternative last exon |
+
+``` r
+# define your input_dir, where the annotation gtf (or the exon supersets if you have already created them) and the genome fasta files are located
+# here we will use the example data
+input_dir = system.file('extdata', package = 'ass')
+
+# define, how many groups and samples per group you analyze. Here we create a small experiment with two groups with one sample per group:
+num_reps = c(1,1)
+
+# define your outdir with NO slash
+outdir = 'simulation'
+
+# define the number of genes you want to work with. If you want all exons, do not specify this parameter or set it to NULL
+# here we create splice variants from 9 exon supersets:
+max_genes = 9
+```
+
+You could define the distribution of the events by probability or
+relative frequency.
+
+  - Probability: For each superset we create an event with the
+    probability mentioned in `event_prob`.
+  - Frequency: Set `probs_as_freq = T`. The exon supersets are
+    partitioned corresponding to the `event_prob` parameter.
+
+<!-- end list -->
+
+``` r
+# in this example we use relative frequencies
+# here we produce eight variants with one of each AS events as well as one variant containing every event
+# if probs_as_freq was FALSE, a random number would be drawn for each event-superset combination and only if it was smaller than 1/9 the AS event would be created
 probs_as_freq = T
 event_freq = 
     setNames(rep(1/9, 9),
              c('es', 'mes', 'ir', 'a3', 'a5', 'afe', 'ale', 'mee', 'es,ir,mes,a3,a5,afe,ale,mee'))
 
-# we will create a small experiment with just one samplesper group
-num_reps = c(1,1)
 
-# we can use the previously created superset to simulate splice variants from, since it is saved in the same directory as the gtf
+
+# we use the previously created superset to simulate splice variants from, since it is saved in the same directory as the gtf
 # if no superset is found, a new one will be created
-simulate_alternative_splicing(input_dir = system.file('extdata', package = 'ass'),
+simulate_alternative_splicing(input_dir = input_dir,
                               event_probs = event_freq,
-                              outdir = 'simulation', 
+                              outdir = outdir, 
                               probs_as_freq = probs_as_freq, 
                               max_genes = max_genes,
                               num_reps = num_reps)
@@ -121,22 +145,10 @@ simulate_alternative_splicing(input_dir = system.file('extdata', package = 'ass'
 #> finished sequencing
 ```
 
-<!-- What is special about using `README.Rmd` instead of just `README.md`? You can include R chunks like so: -->
-
-<!-- ```{r cars} -->
-
-<!-- #summary(cars) -->
-
-<!-- ``` -->
-
-<!-- You'll still need to render `README.Rmd` regularly, to keep `README.md` up-to-date. -->
-
-<!-- You can also embed plots, for example: -->
-
 ### Visualize Splice Variants
 
 ``` r
-# to visualitze the splice variants we will use ggbio
+# to visualize the splice variants we will use ggbio
 suppressMessages(library(ggbio))
 
 # firstly, we load the newly created gtf file 
@@ -153,7 +165,7 @@ suppressWarnings(ggbio::autoplot(split(exons, exons$transcript_id)))
 
 ``` r
 
-# check annotation
+# have a look at the event annotation
 event_anno = read.csv('simulation/event_annotation.tsv', sep = '\t')
 event_anno[grepl(gene_id, event_anno$template) | grepl(gene_id, event_anno$variant), ]
 #>    event_annotation                                     variant                                    template                                                                    genomic_start                                                                      genomic_end                         transcriptomic_start                           transcriptomic_end
@@ -179,8 +191,7 @@ a gtf file. Next, splicing variants are created with documentation and
 event annotation based on the users input. Finally, fastq files
 containing RNA-seq reads from the splice variants and the real exon and
 junction coverage are created using a modified version of the polyester
-R package available on
-<https://github.com/quirinmanz/polyester>.
+R package available on <https://github.com/quirinmanz/polyester>.
 
 ### Usage
 
@@ -190,17 +201,17 @@ simulate_alternative_splicing(input_dir, event_probs, outdir, ncores = 1L, ...)
 
 ### Arguments
 
-| Argument      | Description                                                                                                                                                                                                                                                                                    |
-| ------------- | ---------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
-| `input_dir`   | Character path to directory containing the gtf file from which splice variants are created and genome fasta files passed to polyester.                                                                                                                                                         |
-| `event_probs` | Named list/vector containing numerics corresponding to the probabilites to create the event(combination). If `probs_as_freq` is `TRUE` `event_probs` correspond to the relative frequency of occurences for the event(combination) and in this case the sum of all frequencies has to be \<=1. |
-| `outdir`      | character, path to folder where simulated reads and all annotations should be written, with *no* slash at the end. By default, reads are written to current working directory.                                                                                                                 |
-| `ncores`      | the number of cores to be utilized for parallel generation of splice variant creation and read simulation.                                                                                                                                                                                     |
-| `...`         | any of several other arguments that can be used to add nuance to the simulation and splice variant creation. See details.                                                                                                                                                                      |
+| Argument      | Description                                                                                                                                                                                                                                                                                     |
+| ------------- | ----------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
+| `input_dir`   | Character path to directory containing the gtf file from which splice variants are created and genome fasta files passed to polyester.                                                                                                                                                          |
+| `event_probs` | Named list/vector containing numerics corresponding to the probabilites to create the event (combination). If `probs_as_freq` is `TRUE` `event_probs` correspond to the relative frequency of occurences for the event(combination) and in this case the sum of all frequencies has to be \<=1. |
+| `outdir`      | character, path to folder where simulated reads and all annotations should be written, with *no* slash at the end. By default, reads are written to current working directory.                                                                                                                  |
+| `ncores`      | the number of cores to be utilized for parallel generation of splice variant creation and read simulation.                                                                                                                                                                                      |
+| `...`         | any of several other arguments that can be used to add nuance to the simulation and splice variant creation. See details.                                                                                                                                                                       |
 
 ### Details
 
-Reads are simulated from a GTF file which is pruduced by
+Reads are simulated from a GTF file which is produced by
 `create_splicing_variants_and_annotation` plus DNA sequences.
 
 Several optional parameters can be passed to this function to adjust the
@@ -216,8 +227,8 @@ the polyester R package:
     which means that all available exon supersets will be used.
 
   - `exon_junction_coverage` : Should the real coverage of exons,
-    junctions and retained introns should be written into a additional
-    file. Default `TRUE`
+    junctions and retained introns be written into a additional file.
+    Default `TRUE`
 
   - `multi_events_per_exon` : Should it be possible to have more than
     one AS event at the same exon if multiple variants are created for
@@ -234,7 +245,7 @@ the polyester R package:
 Parameters passed to polyester that we assigned different defaults to
 than in `simulate_experiment`:
 
-  - `fold_changes` : Currently, ass introduces random isform switches.
+  - `fold_changes` : Currently, ass introduces random isoform switches.
     Those can be retraced in the sim\_tx\_info.txt file written by
     polyester. We plan on improving this in the future.
 
@@ -266,7 +277,4 @@ splicing event annotation and exon and junction coverages are written to
 Alyssa C. Frazee, Andrew E. Jaffe, Ben Langmead, Jeffrey T. Leek,
 Polyester: simulating RNA-seq datasets with differential transcript
 expression, Bioinformatics, Volume 31, Issue 17, 1 September 2015, Pages
-2778–2784,
-<https://doi.org/10.1093/bioinformatics/btv272>
-
-<!-- In that case, don't forget to commit and push the resulting figure files, so they display on GitHub! -->
+2778–2784, <https://doi.org/10.1093/bioinformatics/btv272>
