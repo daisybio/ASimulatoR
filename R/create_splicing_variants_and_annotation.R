@@ -143,6 +143,7 @@ create_splicing_variants_and_annotation <-
     exon_supersets <- get_exon_supersets(gtf_path, valid_chromosomes, ncores, save_exon_superset)
 
     ### assign as events to supersets ----
+    message('create splicing variants and annotation...')
     gene_lengths <- sapply(exon_supersets, length)
     nr_genes <- min(sum(gene_lengths > 1), max_genes)
     
@@ -178,10 +179,8 @@ create_splicing_variants_and_annotation <-
         gene_lengths[[drawn_genes[i]]] <- -1
       }
     }
-
+    
     ### create splice variants and annotation ----
-    message('create splicing variants and annotation...')
-    #TODO: is random number generation ok?
     all_variants_and_event_annotation <-
      parallel::mclapply(1:nr_genes, function(i) {
         construct <- names(event_probs)[construct_all_list[[i]]]
