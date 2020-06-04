@@ -249,27 +249,37 @@ simulate_alternative_splicing <-
 
 
 ### debugging ----
-# max_genes = 16
+# input = '../ensembl_data/Homo_sapiens.GRCh38.99/'
+# output = '../ensembl_data/Homo_sapiens.GRCh38.99_out'
 # multi_events_per_exon = T
-# prob_as_freq = T
-# seq_depth = 2e06
+# probs_as_freq = F
+# error_rate = 0
+# readlen = 76
+# max_genes = 10
+# seq_depth = 2e04
+# outdir = sprintf(
+#   '%s/maxGenes%d_SeqDepth%d_errRate%f_readlen%d_multiEventsPerExon%s_probsAsFreq%s',
+#   output,
+#   ifelse(is.null(max_genes), 0, max_genes),
+#   seq_depth,
+#   error_rate,
+#   readlen,
+#   multi_events_per_exon,
+#   probs_as_freq
+# )
 # params = list(
 #   ncores = 4,
-#   input_dir = '../ensembl_data/Homo_sapiens.GRCh38.99/',
+#   input_dir = input,
 #   event_probs =
-#     setNames(c(0.125, 0.125, 0.125, 0.125, 0.125, 0.125, 0.125, 0.125),
+#     setNames(rep(1, 8),
 #              c('es', 'mes', 'ir', 'a3', 'a5', 'afe', 'ale', 'mee')),
-#   max_genes = max_genes,
-#   outdir = sprintf(
-#     '../ensembl_data/Homo_sapiens.GRCh38.99_out/maxGenes%d_SeqDepth%d_multiEventsPerExon%s_eventsAsFreq%s',
-#     max_genes,
-#     seq_depth,
-#     multi_events_per_exon,
-#     prob_as_freq
-#   ),
+#   outdir = outdir,
 #   seq_depth = seq_depth,
+#   max_genes = max_genes,
+#   error_rate = error_rate,
+#   readlen = readlen,
 #   multi_events_per_exon = multi_events_per_exon,
-#   prob_as_freq = prob_as_freq
+#   probs_as_freq = probs_as_freq
 # )
-#
+# 
 # do.call(simulate_alternative_splicing, params)

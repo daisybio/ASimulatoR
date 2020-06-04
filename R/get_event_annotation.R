@@ -68,9 +68,9 @@ get_event_annotation <-
     }
     if ('mee' %in% comb) {
       incl_exons <-
-        list(template = as.integer(names(event_exons$mee)[2]),
-             variant = as.integer(names(event_exons$mee)[3]))
-      if (exon_vector[names(event_exons$mee)[3]]) incl_exons[c(1,2)] <- incl_exons[c(2,1)]
+        list(template = event_exons$mee[2],
+             variant = event_exons$mee[3])
+      if (exon_vector[event_exons$mee[3]]) incl_exons[c(1,2)] <- incl_exons[c(2,1)]
       variant_exon <- variant[variant$gene_exon_number == incl_exons$variant]
       template_exon <- template[template$gene_exon_number == incl_exons$template]
       event_annotation <- data.table::rbindlist(list(
@@ -96,7 +96,7 @@ get_event_annotation <-
       ))
     }
     if ('mes' %in% comb) {
-      skipped_exons <- template[template$gene_exon_number %in% as.integer(names((event_exons$mes[-c(1, length(event_exons$mes))])))]
+      skipped_exons <- template[template$gene_exon_number %in% (event_exons$mes[-c(1, length(event_exons$mes))])]
       event_annotation <- data.table::rbindlist(list(
         event_annotation,
         list(
@@ -111,7 +111,7 @@ get_event_annotation <-
       ))
     }
     if ('es' %in% comb) {
-      skipped_exon <- template[template$gene_exon_number == as.integer(names(event_exons$es[2]))]
+      skipped_exon <- template[template$gene_exon_number == event_exons$es[2]]
       event_annotation <- data.table::rbindlist(list(
         event_annotation,
         list(

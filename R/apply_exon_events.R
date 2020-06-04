@@ -5,12 +5,12 @@ apply_exon_events <- function(v, comb, event_exons) {
   if ('ale' %in% comb)
     v[c(length(v) - 1, length(v))] <- v[c(length(v), length(v) - 1)]
   if ('mee' %in% comb)
-    v[names(event_exons[['mee']][c(2, 3)])] <-
-      v[names(event_exons[['mee']][c(3, 2)])]
+    v[event_exons[['mee']][c(2, 3)]] <-
+      v[event_exons[['mee']][c(3, 2)]]
   if ('es' %in% comb)
-    v[names(event_exons[['es']][2])] <- F
+    v[event_exons[['es']][2]] <- F
   if ('mes' %in% comb)
-    v[names(event_exons[['mes']][-c(1, length(event_exons[['mes']]))])] <-
+    v[event_exons[['mes']][-c(1, length(event_exons[['mes']]))]] <-
       F
   return(v)
 }

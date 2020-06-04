@@ -49,42 +49,6 @@
   template
 }
 
-
-.assign_events <- function(v, min_nr_exons_per_event) {
-  # done with all assignments
-  if (length(min_nr_exons_per_event) == 0) return(list())
-  # assign event and split vector, try until it works
-  # TODO: assign greedy after maximum number of attemtps exceeded
-  while (T) {
-    result <- list()
-    event <- draw_one_sample_safely(min_nr_exons_per_event)
-    # does not work
-    if (event > length(v)) {
-      stop('Error in assign events: Event length is bigger than vector. This is never supposed to happen.')
-    }
-    event_start <- draw_one_sample_safely(1:(length(v) - event + 1))
-    vs <-
-      list(v1 = v[1:event_start], v2 = v[(event_start + event - 1):length(v)])
-    result[[names(event)]] <-
-      v[event_start:(event_start + event - 1)]
-    min_nr_exons_per_event_tmp <-
-      min_nr_exons_per_event[names(min_nr_exons_per_event) != names(event)]
-    events_first <-
-      sample(c(TRUE, FALSE),
-             length(min_nr_exons_per_event_tmp),
-             replace = TRUE)
-    if (sum(min_nr_exons_per_event_tmp[events_first]) - (sum(events_first) - 1L) > length(vs$v1) ||
-        sum(min_nr_exons_per_event_tmp[!events_first]) - (sum(!events_first) - 1L) > length(vs$v2))
-      next
-    result_v1 <-
-      .assign_events(vs$v1, min_nr_exons_per_event_tmp[events_first])
-    result_v2 <-
-      .assign_events(vs$v2, min_nr_exons_per_event_tmp[!events_first])
-    if ((length(result_v1) + length(result_v2)) == length(min_nr_exons_per_event_tmp))
-      return(c(result, result_v1, result_v2))
-  }
-}
-
 #' Internal function to create alternative splicing events and annotation
 #'
 #' This is not intended to be called directly;
@@ -168,21 +132,20 @@ create_splicing_variants_and_annotation <-
     construct_all_list <- construct_all_list[decr]
     drawn_genes <- character(nr_genes)
     for (i in 1:nr_genes) {
-      if (min_nr_exons[i] > 0) {
+      # if (min_nr_exons[i] > 0) {
         drawn_genes[i] <-
           draw_one_sample_safely(names(gene_lengths)[gene_lengths >= min_nr_exons[i]])
         gene_lengths[[drawn_genes[i]]] <- -1
-      } else {
-        #TODO: what to do if we did not draw an as event?
-        drawn_genes[i] <-
-          draw_one_sample_safely(names(gene_lengths)[gene_lengths >= min_nr_exons[i]])
-        gene_lengths[[drawn_genes[i]]] <- -1
-      }
+      # } else {
+      #   #TODO: what to do if we did not draw an as event?
+      #   drawn_genes[i] <-
+      #     draw_one_sample_safely(names(gene_lengths)[gene_lengths >= min_nr_exons[i]])
+      #   gene_lengths[[drawn_genes[i]]] <- -1
+      # }
     }
-    
     ### create splice variants and annotation ----
     all_variants_and_event_annotation <-
-     parallel::mclapply(1:nr_genes, function(i) {
+    parallel::mclapply(1:nr_genes, function(i) {
         construct <- names(event_probs)[construct_all_list[[i]]]
         orig_template <- exon_supersets[[drawn_genes[i]]]
         if (length(construct) == 0) {
@@ -214,7 +177,26 @@ create_splicing_variants_and_annotation <-
                 min_nr_exons[i]
               )
             exon_vector <- res$exon_vector
-            event_exons <- res$event_exons
+          } else {
+            mee_events <- c('afe', 'ale', 'mee')
+            mee_events <- mee_events[mee_events %in% unique(unlist(event_combs))]
+            # if no mee event should be constructed every event_comb is made from the same template vector
+            # if there are mee_events we make sure that they are at the beginning and end of the exon vector 
+            # and afterwards apply the normal function for the rest
+            if (length(mee_events) != 0) {
+              res_tmp <- construct_variant(mee_events, exon_vector, min_nr_exons_per_event, available_exons, orig_template, F, neg_strand, min_nr_exons[i], assign_mee_only = T)
+              mee_exons <- res_tmp$event_exons$mee
+              res_list <- lapply(event_combs, function(comb){
+                construct_variant(comb, res_tmp$exon_vector, min_nr_exons_per_event, available_exons, orig_template, multi_events_per_exon, neg_strand,
+                                  get_min_nr_exons(min_nr_exons_per_event, c(comb, mee_events), multi_events_per_exon), mee_events, mee_exons)
+              })
+              exon_vector <- res_tmp$exon_vector
+            } else {
+              res_list <- lapply(event_combs, function(comb){
+                construct_variant(comb, exon_vector, min_nr_exons_per_event, available_exons, orig_template, multi_events_per_exon, neg_strand, 
+                                  get_min_nr_exons(min_nr_exons_per_event, comb, F))
+              })
+            }
           }
           template <- orig_template[exon_vector]
           S4Vectors::mcols(template)[c('tr_start', 'tr_end')] <-
@@ -222,28 +204,33 @@ create_splicing_variants_and_annotation <-
 
 
           variants_and_event_annotation <-
-            lapply(event_combs, function(comb) {
+            lapply(1:length(event_combs), function(comb_ind) {
+              comb <- event_combs[[comb_ind]]
+              
               ### create splice variants ----
               if (multi_events_per_exon) {
-                res <-
-                  construct_variant(
-                    comb,
-                    exon_vector,
-                    min_nr_exons_per_event,
-                    available_exons,
-                    orig_template,
-                    multi_events_per_exon,
-                    neg_strand
-                  )
-                exon_vector <- res$exon_vector
-                event_exons <- res$event_exons
-                variant <- res$variant
-              } else {
+                res <- res_list[[comb_ind]]
+              #   res <-
+              #     construct_variant(
+              #       comb,
+              #       exon_vector,
+              #       min_nr_exons_per_event,
+              #       available_exons,
+              #       orig_template,
+              #       multi_events_per_exon,
+              #       neg_strand,
+              #       get_min_nr_exons(min_nr_exons_per_event, c(comb, mee_events), multi_events_per_exon)
+              #     )
+              #   # exon_vector <- res$exon_vector
+              #   event_exons <- res$event_exons
+              #   # variant <- res$variant
+              }# else {
+              event_exons <- res$event_exons
                 variant <-
                   orig_template[apply_exon_events(exon_vector, comb, event_exons)]
-              }
+              #}
               
-              ### implement a3, a5 and ir
+              ### apply a3, a5 and ir
               if ('a3' %in% comb) {
                 new_a3 <- res$new_a3
                 a3_index <- res$a3_index
@@ -261,14 +248,14 @@ create_splicing_variants_and_annotation <-
                   BiocGenerics::end(variant[variant$gene_exon_number == a5_index]) <- new_a5
               }
               if ('ir' %in% comb) {
-                ir_indices <- as.integer(names(event_exons[['ir']]))
+                ir_indices <- event_exons[['ir']]
                 IRanges::ranges(variant[variant$gene_exon_number == ir_indices[1]]) <-
                   range(IRanges::ranges(variant[variant$gene_exon_number %in% ir_indices]))
                 variant[variant$gene_exon_number == ir_indices[2]] <-
                   NULL
                 retaining_exon <- variant[variant$gene_exon_number == ir_indices[1]]
                 flanking_exons <-
-                  template[template$gene_exon_number %in% as.integer(names(event_exons$ir))]
+                  template[template$gene_exon_number %in% ir_indices]
                 ri <-
                   GenomicRanges::gaps(flanking_exons, start = min(BiocGenerics::start(flanking_exons)))
                 S4Vectors::mcols(ri) <-
@@ -291,18 +278,18 @@ create_splicing_variants_and_annotation <-
 
               ### create event annotation ----
 
-              if (multi_events_per_exon && res$two_variants) {
-                event_annotation <-
-                  get_event_annotation(
-                    comb,
-                    event_exons,
-                    exon_vector,
-                    neg_strand,
-                    res$template_new,
-                    variant
-                  )
-                variant <- c(.add_transcript_and_junction_lines(res$template_new), .add_transcript_and_junction_lines(variant))
-              } else {
+              # if (multi_events_per_exon && res$two_variants) {
+              #   event_annotation <-
+              #     get_event_annotation(
+              #       comb,
+              #       event_exons,
+              #       exon_vector,
+              #       neg_strand,
+              #       res$template_new,
+              #       variant
+              #     )
+              #   variant <- c(.add_transcript_and_junction_lines(res$template_new), .add_transcript_and_junction_lines(variant))
+              # } else {
                 event_annotation <-
                   get_event_annotation(
                     comb,
@@ -313,7 +300,7 @@ create_splicing_variants_and_annotation <-
                     variant
                   )
                 variant <- .add_transcript_and_junction_lines(variant)
-              }
+              # }
 
               ### add transcript line ----
               list(event_annotation = event_annotation,
