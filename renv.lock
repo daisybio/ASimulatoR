@@ -535,10 +535,10 @@
       "RemoteType": "github",
       "RemoteHost": "api.github.com",
       "RemoteRepo": "polyester",
-      "RemoteUsername": "quirinmanz",
+      "RemoteUsername": "biomedbigdata",
       "RemoteRef": "master",
       "RemoteSha": "df45edf691a53de075e830fe01d44447582c984c",
-      "Hash": "219462eec1139066ea755849148aca54"
+      "Hash": "01b92c2e3e31845b3f2879376a8e5da5"
     },
     "praise": {
       "Package": "praise",
