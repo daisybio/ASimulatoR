@@ -1,9 +1,9 @@
 FROM rocker/r-base:3.6.3
 RUN apt-get update && apt-get install -y libcurl4-openssl-dev libxml2-dev libssl-dev/unstable
 
-RUN mkdir /ass /input /output
-COPY ./ /ass
-WORKDIR /ass
+RUN mkdir /ASimulatoR /input /output
+COPY ./ /ASimulatoR
+WORKDIR /ASimulatoR
 
 ENV RENV_VERSION 0.9.3-71
 RUN R -e "install.packages('remotes', repos = c(CRAN = 'https://cloud.r-project.org')); \

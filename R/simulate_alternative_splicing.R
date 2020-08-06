@@ -137,7 +137,7 @@
 #'
 #'   Parameters passed to polyester that we assigned different defaults to than in \code{\link{simulate_experiment}}:
 #'   \itemize{
-#'   \item \code{fold_changes}: Currently, ass introduces random isoform switches. 
+#'   \item \code{fold_changes}: Currently, ASimulatoR introduces random isoform switches. 
 #'   Those can be retraced in the sim_tx_info.txt file written by polyester.
 #'   We plan on improving this in the future.
 #'   \item \code{strand_specific}: Strand-specific simulation (1st read forward strand,
@@ -233,7 +233,7 @@ simulate_alternative_splicing <-
       }
     }))
     
-    args$meanmodel = T
+    args$meanmodel <- T
     args$gtf <- file.path(outdir, 'splicing_variants.gtf')
     args$seqpath <- input_dir
     args$outdir <- outdir
@@ -248,17 +248,24 @@ simulate_alternative_splicing <-
   }
 
 
-### debugging ----
+# ## debugging ----
+# ## set parameters
 # input = '../ensembl_data/Homo_sapiens.GRCh38.99/'
 # output = '../ensembl_data/Homo_sapiens.GRCh38.99_out'
-# multi_events_per_exon = T
-# probs_as_freq = F
-# error_rate = 0
+# ncores = 4
+# multi_events_per_exon = F
+# probs_as_freq = T
+# error_rate = 0.1
 # readlen = 76
-# max_genes = 10
-# seq_depth = 2e04
+# max_genes = NULL
+# seq_depth = 5e07
+# as_events = c('es,ir', 'es,a3')
+# event_probs = rep(1/(length(as_events) + 1), length(as_events))
+# print(event_probs)
+# names(event_probs) = as_events
+# num_reps = c(1,1)
 # outdir = sprintf(
-#   '%s/maxGenes%d_SeqDepth%d_errRate%f_readlen%d_multiEventsPerExon%s_probsAsFreq%s',
+#   '%s/maxGenes%d_SeqDepth%g_errRate%g_readlen%d_multiEventsPerExon%s_probsAsFreq%s',
 #   output,
 #   ifelse(is.null(max_genes), 0, max_genes),
 #   seq_depth,
@@ -267,19 +274,22 @@ simulate_alternative_splicing <-
 #   multi_events_per_exon,
 #   probs_as_freq
 # )
+# 
 # params = list(
-#   ncores = 4,
+#   ncores = ncores,
 #   input_dir = input,
-#   event_probs =
-#     setNames(rep(1, 8),
-#              c('es', 'mes', 'ir', 'a3', 'a5', 'afe', 'ale', 'mee')),
+#   event_probs = event_probs,
 #   outdir = outdir,
 #   seq_depth = seq_depth,
 #   max_genes = max_genes,
 #   error_rate = error_rate,
 #   readlen = readlen,
 #   multi_events_per_exon = multi_events_per_exon,
-#   probs_as_freq = probs_as_freq
+#   probs_as_freq = probs_as_freq,
+#   num_reps = num_reps
 # )
 # 
+# 
+# ## run simulator
+# library(ASimulatoR)
 # do.call(simulate_alternative_splicing, params)

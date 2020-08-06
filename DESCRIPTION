@@ -1,4 +1,4 @@
-Package: ass
+Package: ASimulatoR
 Version: 0.0.0.9000
 Date: 2020-01-01
 Title: Alternative Splicing Simulator
@@ -12,11 +12,11 @@ Author: Amit Fenn, Quirin Manz, Olga Tsoy
 Maintainer: Quirin Manz <qu.manz@tum.de>
 Depends: R (>= 3.6), data.table (>= 1.9.8), rtracklayer, polyester, methods, parallel
 biocViews: 
-Remotes: quirinmanz/polyester
+Remotes: biomedbigdata/polyester
 Suggests: ggbio
 Description: Simulates RNA-Seq experiments with alternative splice variants using the polyester R package.
 License: GPL (>= 2)
-URL: https://github.com/biomedbigdata/ass
-BugReports: https://github.com/biomedbigdata/ass/issues
+URL: https://github.com/biomedbigdata/ASimulatoR
+BugReports: https://github.com/biomedbigdata/ASimulatoR/issues
 RoxygenNote: 7.1.0
 Encoding: UTF-8

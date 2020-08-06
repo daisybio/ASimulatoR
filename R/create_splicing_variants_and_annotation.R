@@ -106,27 +106,44 @@ create_splicing_variants_and_annotation <-
     ### create exon_superset ----
     exon_supersets <- get_exon_supersets(gtf_path, valid_chromosomes, ncores, save_exon_superset)
 
-    ### assign as events to supersets ----
+    ### assign splicing variants with as events to supersets ----
     message('create splicing variants and annotation...')
     gene_lengths <- sapply(exon_supersets, length)
+    total_gene_lengths <- cumsum(rev(table(gene_lengths)))
     nr_genes <- min(sum(gene_lengths > 1), max_genes)
-    
-    if (probs_as_freq) {
-      construct_all <- sapply(names(event_probs), function(event) {
-        rep(names(event_probs) == event, floor(event_probs[[event]] * nr_genes))
+    too_few_supersets <- T
+    while (too_few_supersets){
+      if (probs_as_freq) {
+        construct_all <- sapply(names(event_probs), function(event) {
+          rep(names(event_probs) == event, floor(event_probs[[event]] * nr_genes))
+        })
+        construct_all <- c(construct_all, rep(F, length(event_probs)*nr_genes - length(construct_all)))
+      } else {
+        construct_all <- runif(nr_genes * length(event_probs)) < event_probs
+      }
+      construct_all_list <- split(construct_all, ceiling(seq_along(construct_all)/length(event_probs)))
+      min_nr_exons_per_event <-
+        setNames(c(2, 2, 2, 3, 3, 3, 4, 4),
+                 c('a3', 'a5', 'ir', 'es', 'ale', 'afe', 'mee', 'mes'))
+      min_nr_exons <- sapply(construct_all_list, function(construct){
+        construct <- names(event_probs)[construct]
+        get_min_nr_exons(min_nr_exons_per_event, construct, multi_events_per_exon)
       })
-      construct_all <- c(construct_all, rep(F, length(event_probs)*nr_genes - length(construct_all)))
-    } else {
-      construct_all <- runif(nr_genes * length(event_probs)) < event_probs
+      total_min_nr_exons <- cumsum(rev(table(min_nr_exons)))
+      for (x in names(total_min_nr_exons)[names(total_min_nr_exons) != '0']) {
+        if(total_min_nr_exons[[x]] > total_gene_lengths[[x]]){
+            missing_genes <- total_min_nr_exons[[x]] - total_gene_lengths[[x]]
+            nr_genes <- nr_genes - ceiling((nr_genes / total_min_nr_exons[[x]]) * missing_genes)
+            message(sprintf('%d supersets with at least %s exons found but %d needed. Reducing total number of genes to %d.',
+                            total_gene_lengths[[x]],
+                            x,
+                            total_min_nr_exons[[x]],
+                            nr_genes))
+            break
+        }
+        too_few_supersets <- F
+      }
     }
-    construct_all_list <- split(construct_all, ceiling(seq_along(construct_all)/length(event_probs)))
-    min_nr_exons_per_event <-
-      setNames(c(2, 2, 2, 3, 3, 3, 4, 4),
-               c('a3', 'a5', 'ir', 'es', 'ale', 'afe', 'mee', 'mes'))
-    min_nr_exons <- sapply(construct_all_list, function(construct){
-      construct <- names(event_probs)[construct]
-      get_min_nr_exons(min_nr_exons_per_event, construct, multi_events_per_exon)
-    })
     decr <- order(min_nr_exons, decreasing = T)
     min_nr_exons <- min_nr_exons[decr]
     construct_all_list <- construct_all_list[decr]
@@ -143,6 +160,7 @@ create_splicing_variants_and_annotation <-
       #   gene_lengths[[drawn_genes[i]]] <- -1
       # }
     }
+    
     ### create splice variants and annotation ----
     all_variants_and_event_annotation <-
     parallel::mclapply(1:nr_genes, function(i) {

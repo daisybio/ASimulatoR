@@ -13,9 +13,9 @@ knitr::opts_chunk$set(
 )
 ```
 
-# ass
+# ASimulatoR
 
-The goal of ass is to simulate RNA-seq reads with alternative splicing events. The alternative splicing events are well documented and the true origin of each read is used for exon and juntion coverage via a modified version of the bioconductor polyester package.
+The goal of ASimulatoR is to simulate RNA-seq reads with alternative splicing events. The alternative splicing events are well documented and the true origin of each read is used for exon and juntion coverage via a modified version of the bioconductor polyester package.
 
 ## Installation
 
@@ -23,11 +23,10 @@ You can install the development version from [GitHub](https://github.com/) with:
 
 ``` r
 # install.packages("remotes")
-Sys.setenv(GITHUB_PAT = "16946cf3c89e74cd07363d0f660559e4339d730b")
-remotes::install_github("biomedbigdata/ass")
+remotes::install_github("biomedbigdata/ASimulatoR")
 ```
 
-Please note that we use a custom version of Polyester, that is available at https://github.com/quirinmanz/polyester
+Please note that we use a custom version of Polyester, that is available at https://github.com/biomedbigdata/polyester
 
 ## Example
 
@@ -37,10 +36,10 @@ These supersets are then used to create splice variants.
 Since all exons from one gene are used to create the exon superset, you may find that the term exon superset is used analogously to gene.
 
 ```{r createSuperset}
-suppressMessages(library(ass))
+suppressMessages(library(ASimulatoR))
 
 # create exon superset for genes on chromosome 21 of ensembl release 99
-gtf_file = system.file('extdata', 'Homo_sapiens.GRCh38.99.21.gtf', package = 'ass')
+gtf_file = system.file('extdata', 'Homo_sapiens.GRCh38.99.21.gtf', package = 'ASimulatoR')
 
 # by default the produced superset will be saved as .rda file into the same directory
 exon_superset = get_exon_supersets(gtf_file)
@@ -61,7 +60,7 @@ This simulator supports eight different AS events:
 ```{r parameters}
 # define your input_dir, where the annotation gtf (or the exon supersets if you have already created them) and the genome fasta files are located
 # here we will use the example data
-input_dir = system.file('extdata', package = 'ass')
+input_dir = system.file('extdata', package = 'ASimulatoR')
 
 # define, how many groups and samples per group you analyze. Here we create a small experiment with two groups with one sample per group:
 num_reps = c(1,1)
@@ -80,7 +79,7 @@ You could define the distribution of the events by probability or relative frequ
 * Frequency: Set `probs_as_freq = T`. The exon supersets are partitioned corresponding to the `event_prob` parameter.
 
 
-```{r simulateASS}
+```{r simulateAS}
 # in this example we use relative frequencies
 # here we produce eight variants with one of each AS events as well as one variant containing every event
 # if probs_as_freq was FALSE, a random number would be drawn for each event-superset combination and only if it was smaller than 1/9 the AS event would be created
@@ -174,7 +173,7 @@ Argument      |Description
  
  Parameters passed to polyester that we assigned different defaults to than in `simulate_experiment`:
 
-*   `fold_changes` : Currently, ass introduces random isoform switches. Those can be retraced in the sim_tx_info.txt file written by polyester. We plan on improving this in the future.  
+*   `fold_changes` : Currently, ASimulatoR introduces random isoform switches. Those can be retraced in the sim_tx_info.txt file written by polyester. We plan on improving this in the future.  
 
 *   `strand_specific` : Strand-specific simulation (1st read forward strand, 2nd read reverse strand with respect to transcript sequence). Default `TRUE` .  
 

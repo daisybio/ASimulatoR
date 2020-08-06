@@ -1,10 +1,10 @@
 
-# ass
+# ASimulatoR
 
-The goal of ass is to simulate RNA-seq reads with alternative splicing
-events. The alternative splicing events are well documented and the true
-origin of each read is used for exon and juntion coverage via a modified
-version of the bioconductor polyester package.
+The goal of ASimulatoR is to simulate RNA-seq reads with alternative
+splicing events. The alternative splicing events are well documented and
+the true origin of each read is used for exon and juntion coverage via a
+modified version of the bioconductor polyester package.
 
 ## Installation
 
@@ -13,12 +13,11 @@ You can install the development version from
 
 ``` r
 # install.packages("remotes")
-Sys.setenv(GITHUB_PAT = "16946cf3c89e74cd07363d0f660559e4339d730b")
-remotes::install_github("biomedbigdata/ass")
+remotes::install_github("biomedbigdata/ASimulatoR")
 ```
 
 Please note that we use a custom version of Polyester, that is available
-at <https://github.com/quirinmanz/polyester>
+at <https://github.com/biomedbigdata/polyester>
 
 ## Example
 
@@ -30,10 +29,10 @@ all exons from one gene are used to create the exon superset, you may
 find that the term exon superset is used analogously to gene.
 
 ``` r
-suppressMessages(library(ass))
+suppressMessages(library(ASimulatoR))
 
 # create exon superset for genes on chromosome 21 of ensembl release 99
-gtf_file = system.file('extdata', 'Homo_sapiens.GRCh38.99.21.gtf', package = 'ass')
+gtf_file = system.file('extdata', 'Homo_sapiens.GRCh38.99.21.gtf', package = 'ASimulatoR')
 
 # by default the produced superset will be saved as .rda file into the same directory
 exon_superset = get_exon_supersets(gtf_file)
@@ -73,7 +72,7 @@ This simulator supports eight different AS events:
 ``` r
 # define your input_dir, where the annotation gtf (or the exon supersets if you have already created them) and the genome fasta files are located
 # here we will use the example data
-input_dir = system.file('extdata', package = 'ass')
+input_dir = system.file('extdata', package = 'ASimulatoR')
 
 # define, how many groups and samples per group you analyze. Here we create a small experiment with two groups with one sample per group:
 num_reps = c(1,1)
@@ -134,11 +133,11 @@ simulate_alternative_splicing(input_dir = input_dir,
 #> parsing gtf and sequences...
 #> done parsing
 #> start sequencing... (1m reads per iteration)
-#> sample_01: overall 15742 reads
+#> sample_01: overall 91608 reads
 #> sample_01: iteration 01
 #> sample_01: fragments generated
 #> sample_01: write read pairs
-#> sample_02: overall 17058 reads
+#> sample_02: overall 78660 reads
 #> sample_02: iteration 01
 #> sample_02: fragments generated
 #> sample_02: write read pairs
@@ -245,9 +244,9 @@ the polyester R package:
 Parameters passed to polyester that we assigned different defaults to
 than in `simulate_experiment`:
 
-  - `fold_changes` : Currently, ass introduces random isoform switches.
-    Those can be retraced in the sim\_tx\_info.txt file written by
-    polyester. We plan on improving this in the future.
+  - `fold_changes` : Currently, ASimulatoR introduces random isoform
+    switches. Those can be retraced in the sim\_tx\_info.txt file
+    written by polyester. We plan on improving this in the future.
 
   - `strand_specific` : Strand-specific simulation (1st read forward
     strand, 2nd read reverse strand with respect to transcript
