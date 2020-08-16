@@ -255,15 +255,15 @@ simulate_alternative_splicing <-
 # ncores = 4
 # multi_events_per_exon = F
 # probs_as_freq = T
-# error_rate = 0.1
+# error_rate = 0
 # readlen = 76
 # max_genes = NULL
-# seq_depth = 5e07
-# as_events = c('es,ir', 'es,a3')
-# event_probs = rep(1/(length(as_events) + 1), length(as_events))
-# print(event_probs)
-# names(event_probs) = as_events
+# seq_depth = 2e08
 # num_reps = c(1,1)
+# as_events = c('es', 'mes', 'ir', 'a3', 'a5', 'afe', 'ale', 'mee')
+# as_combs = combn(as_events, 2, FUN = function(...) paste(..., collapse = ','))
+# event_probs = rep(1/(length(as_combs) + 1), length(as_combs))
+# names(event_probs) = as_combs
 # outdir = sprintf(
 #   '%s/maxGenes%d_SeqDepth%g_errRate%g_readlen%d_multiEventsPerExon%s_probsAsFreq%s',
 #   output,

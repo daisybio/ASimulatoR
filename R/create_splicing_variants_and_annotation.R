@@ -139,6 +139,7 @@ create_splicing_variants_and_annotation <-
                             x,
                             total_min_nr_exons[[x]],
                             nr_genes))
+            too_few_supersets <- T
             break
         }
         too_few_supersets <- F
