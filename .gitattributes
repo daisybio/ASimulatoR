@@ -1,1 +1,2 @@
+./inst/extdata/Homo_sapiens.GRCh38.99.gtf.exon_superset.rda filter=lfs diff=lfs merge=lfs -text
 inst/extdata/Homo_sapiens.GRCh38.99.gtf.exon_superset.rda filter=lfs diff=lfs merge=lfs -text
