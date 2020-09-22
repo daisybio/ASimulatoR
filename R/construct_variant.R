@@ -51,7 +51,7 @@ construct_variant <-
   exon_vector_tmp <- exon_vector
   comb_tmp <- comb
   min_nr_exons_per_event_tmp <- min_nr_exons_per_event
-  # if multi_events_per_exon == T means that the mee evenets have already been asigned, we have to remove the affected exons
+  # if multi_events_per_exon == T means that the mee events have already been asigned, we have to remove the affected exons
   if (multi_events_per_exon) {
     if ('afe' %in% mee_events) {
       exon_vector_tmp <- exon_vector_tmp[-c(1, 2)]
@@ -101,7 +101,7 @@ construct_variant <-
         exon_vector_tmp <- exon_vector_tmp[-((length(exon_vector_tmp) - min_nr_exons_per_event_tmp[['mee']] + 2):length(exon_vector_tmp))]
     }
   }
-  if (assign_mee_only) {
+  if (assign_mee_only & 'mee' %in% comb) {
     possible_ind <- list(names(exon_vector_tmp)[1:min_nr_exons_per_event_tmp[['mee']]], names(exon_vector_tmp)[(length(exon_vector_tmp) + 1 - min_nr_exons_per_event_tmp[['mee']]):length(exon_vector_tmp)])
     event_exons <- list(mee = as.integer(unlist(draw_one_sample_safely(possible_ind))))
   } else
