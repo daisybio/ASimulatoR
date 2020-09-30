@@ -104,8 +104,9 @@ construct_variant <-
   if (assign_mee_only & 'mee' %in% comb) {
     possible_ind <- list(names(exon_vector_tmp)[1:min_nr_exons_per_event_tmp[['mee']]], names(exon_vector_tmp)[(length(exon_vector_tmp) + 1 - min_nr_exons_per_event_tmp[['mee']]):length(exon_vector_tmp)])
     event_exons <- list(mee = as.integer(unlist(draw_one_sample_safely(possible_ind))))
-  } else
+  } else {
     event_exons <- .assign_events(as.integer(names(exon_vector_tmp)), min_nr_exons_per_event_tmp[comb_tmp])
+  }
   
   if ('mee' %in% comb) {
     if (multi_events_per_exon) 

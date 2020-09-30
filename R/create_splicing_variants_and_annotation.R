@@ -107,7 +107,7 @@ create_splicing_variants_and_annotation <-
     exon_supersets <- get_exon_supersets(gtf_path, valid_chromosomes, ncores, save_exon_superset)
 
     ### assign splicing variants with as events to supersets ----
-    message('create splicing variants and annotation...')
+    message('create splicing variants and annotation. This may take a while...')
     gene_lengths <- sapply(exon_supersets, length)
     total_gene_lengths <- cumsum(rev(table(gene_lengths)))
     nr_genes <- min(sum(gene_lengths > 1), max_genes)
@@ -207,7 +207,7 @@ create_splicing_variants_and_annotation <-
               mee_exons <- res_tmp$event_exons$mee
               res_list <- lapply(event_combs, function(comb){
                 construct_variant(comb, res_tmp$exon_vector, min_nr_exons_per_event, available_exons, orig_template, multi_events_per_exon, neg_strand,
-                                  get_min_nr_exons(min_nr_exons_per_event, c(comb, mee_events), multi_events_per_exon), mee_events, mee_exons)
+                                  get_min_nr_exons(min_nr_exons_per_event, c(comb, mee_events)), mee_events, mee_exons)
               })
               exon_vector <- res_tmp$exon_vector
             } else {
