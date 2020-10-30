@@ -10,7 +10,7 @@ Authors@R: c(person("Quirin", "Manz", role = c("aut", 'cre'),
                      email = "olga.tsoy@wzw.tum.de"))
 Author: Amit Fenn, Quirin Manz, Olga Tsoy
 Maintainer: Quirin Manz <qu.manz@tum.de>
-Depends: R (>= 3.6), data.table (>= 1.9.8), rtracklayer, polyester, methods, parallel
+Depends: R (>= 3.6), data.table (>= 1.9.8), rtracklayer, polyester, methods, pbmcapply, parallel
 biocViews: 
 Remotes: biomedbigdata/polyester
 Suggests: ggbio

@@ -253,12 +253,12 @@ simulate_alternative_splicing <-
 # input = '../ensembl_data/Homo_sapiens.GRCh38.99/'
 # output = '../ensembl_data/Homo_sapiens.GRCh38.99_out'
 # ncores = 4
-# multi_events_per_exon = F
-# probs_as_freq = T
-# error_rate = 0
+# multi_events_per_exon = T
+# probs_as_freq = F
+# error_rate = 0.001
 # readlen = 76
 # max_genes = NULL
-# seq_depth = 2e08
+# seq_depth = 1e07
 # num_reps = c(1,1)
 # as_events = c('es', 'mes', 'ir', 'a3', 'a5', 'afe', 'ale', 'mee')
 # as_combs = combn(as_events, 2, FUN = function(...) paste(..., collapse = ','))
@@ -288,8 +288,8 @@ simulate_alternative_splicing <-
 #   probs_as_freq = probs_as_freq,
 #   num_reps = num_reps
 # )
-# 
-# 
-# ## run simulator
+
+
+## run simulator
 # library(ASimulatoR)
 # do.call(simulate_alternative_splicing, params)

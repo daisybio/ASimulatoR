@@ -1,4 +1,6 @@
 .assign_events <- function(v, min_nr_exons_per_event) {
+  # if (sum(min_nr_exons_per_event) - (length(min_nr_exons_per_event) - 1L) > length(v)) 
+  #   stop('Error in assign events: Event lengths are bigger than vector. This is never supposed to happen.')
   # done with all assignments
   if (length(min_nr_exons_per_event) == 0) return(list())
   # assign event and split vector, try until it works
@@ -45,7 +47,7 @@ construct_variant <-
            min_nr_exons,
            mee_events = NULL,
            mee_exons = NULL,
-           assign_mee_only = F) {
+           assign_mees_only = F) {
     
   result = list()
   exon_vector_tmp <- exon_vector
@@ -101,7 +103,7 @@ construct_variant <-
         exon_vector_tmp <- exon_vector_tmp[-((length(exon_vector_tmp) - min_nr_exons_per_event_tmp[['mee']] + 2):length(exon_vector_tmp))]
     }
   }
-  if (assign_mee_only & 'mee' %in% comb) {
+  if (assign_mees_only & 'mee' %in% comb) {
     possible_ind <- list(names(exon_vector_tmp)[1:min_nr_exons_per_event_tmp[['mee']]], names(exon_vector_tmp)[(length(exon_vector_tmp) + 1 - min_nr_exons_per_event_tmp[['mee']]):length(exon_vector_tmp)])
     event_exons <- list(mee = as.integer(unlist(draw_one_sample_safely(possible_ind))))
   } else {

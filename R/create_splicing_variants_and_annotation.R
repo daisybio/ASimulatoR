@@ -107,7 +107,8 @@ create_splicing_variants_and_annotation <-
     exon_supersets <- get_exon_supersets(gtf_path, valid_chromosomes, ncores, save_exon_superset)
 
     ### assign splicing variants with as events to supersets ----
-    message('create splicing variants and annotation. This may take a while...')
+    message('assign variants to supersets...')
+    
     gene_lengths <- sapply(exon_supersets, length)
     total_gene_lengths <- cumsum(rev(table(gene_lengths)))
     nr_genes <- min(sum(gene_lengths > 1), max_genes)
@@ -163,8 +164,9 @@ create_splicing_variants_and_annotation <-
     }
     
     ### create splice variants and annotation ----
+    message('create splicing variants and annotation. This may take a while...')
     all_variants_and_event_annotation <-
-    parallel::mclapply(1:nr_genes, function(i) {
+      pbmcapply::pbmclapply(1:nr_genes, function(i) {
         construct <- names(event_probs)[construct_all_list[[i]]]
         orig_template <- exon_supersets[[drawn_genes[i]]]
         if (length(construct) == 0) {
@@ -203,7 +205,7 @@ create_splicing_variants_and_annotation <-
             # if there are mee_events we make sure that they are at the beginning and end of the exon vector 
             # and afterwards apply the normal function for the rest
             if (length(mee_events) != 0) {
-              res_tmp <- construct_variant(mee_events, exon_vector, min_nr_exons_per_event, available_exons, orig_template, F, neg_strand, min_nr_exons[i], assign_mee_only = T)
+              res_tmp <- construct_variant(mee_events, exon_vector, min_nr_exons_per_event, available_exons, orig_template, F, neg_strand, min_nr_exons[i], assign_mees_only = T)
               mee_exons <- res_tmp$event_exons$mee
               res_list <- lapply(event_combs, function(comb){
                 construct_variant(comb, res_tmp$exon_vector, min_nr_exons_per_event, available_exons, orig_template, multi_events_per_exon, neg_strand,
