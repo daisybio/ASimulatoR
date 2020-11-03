@@ -1,2 +1,2 @@
-# nedded for Docker
+# needed for Docker
 library(devtools)
