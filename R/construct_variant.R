@@ -1,18 +1,22 @@
-.assign_events <- function(v, min_nr_exons_per_event) {
+.assign_events <- function(v, min_nr_exons_per_event, max_attempts = 10) {
   # if (sum(min_nr_exons_per_event) - (length(min_nr_exons_per_event) - 1L) > length(v)) 
   #   stop('Error in assign events: Event lengths are bigger than vector. This is never supposed to happen.')
   # done with all assignments
   if (length(min_nr_exons_per_event) == 0) return(list())
   # assign event and split vector, try until it works
-  # TODO: assign greedy after maximum number of attempts exceeded
+  # assign greedy after maximum number of attempts exceeded
+  counter <- 0
   while (T) {
+    counter <- counter + 1
     result <- list()
     event <- draw_one_sample_safely(min_nr_exons_per_event)
     # does not work
     if (event > length(v)) {
       stop('Error in assign events: Event length is bigger than vector. This is never supposed to happen.')
     }
-    event_start <- draw_one_sample_safely(1:(length(v) - event + 1))
+    event_start <- ifelse(counter > max_attempts, 
+                          1,
+                          draw_one_sample_safely(1:(length(v) - event + 1)))
     vs <-
       list(v1 = v[1:event_start], v2 = v[(event_start + event - 1):length(v)])
     result[[names(event)]] <-
