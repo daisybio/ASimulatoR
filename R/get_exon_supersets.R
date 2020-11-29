@@ -34,7 +34,7 @@ get_exon_supersets <-
 
       if (!is.null(valid_chromosomes))
         exon_supersets <-
-          exon_supersets[GenomeInfoDb::seqnames(exon_supersets) %in% valid_chromosomes]
+          exon_supersets[S4Vectors::runValue(GenomeInfoDb::seqnames(exon_supersets)) %in% valid_chromosomes]
       exon_supersets <-
         exon_supersets[exon_supersets$type == 'exon']
       exon_supersets <-
@@ -43,7 +43,7 @@ get_exon_supersets <-
       message('creating superset...')
 
       exon_supersets <-
-        parallel::mclapply(exon_supersets, function(gene) {
+        pbmcapply::pbmclapply(exon_supersets, function(gene) {
           template <- GenomicRanges::reduce(gene)
           neg_strand <-
             S4Vectors::runValue(BiocGenerics::strand(gene)) == '-'
