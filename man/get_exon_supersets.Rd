@@ -4,19 +4,10 @@
 \alias{get_exon_supersets}
 \title{Create or load exon_supersets from gtf file}
 \usage{
-get_exon_supersets(
-  gtf_path,
-  valid_chromosomes = NULL,
-  ncores = 1L,
-  save = TRUE
-)
+get_exon_supersets(gtf_path, ncores = 1L, save = TRUE)
 }
 \arguments{
 \item{gtf_path}{path to the gtf file from which exon supersets are created}
-
-\item{valid_chromosomes}{character vector. Only from these chromosomes exon supersets are created. 
-When used from \code{\link{create_splicing_variants_and_annotation}} chromosomes for which fasta files exist are used.
-Default \code{NULL}: no chromosome filtering.}
 
 \item{ncores}{number of cores used to generate exon supersets in parallel.
 Default \code{1}: no parallel computing.}

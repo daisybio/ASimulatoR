@@ -89,7 +89,7 @@
 #' @import rtracklayer
 #' @importFrom stats runif setNames
 #' @importFrom methods as
-#' @importFrom parallel mclapply
+#' @importFrom pbmcapply pbmclapply
 create_splicing_variants_and_annotation <-
   function(gtf_path,
            valid_chromosomes,
@@ -104,8 +104,16 @@ create_splicing_variants_and_annotation <-
            save_exon_superset = T) {
 
     ### create exon_superset ----
-    exon_supersets <- get_exon_supersets(gtf_path, valid_chromosomes, ncores, save_exon_superset)
-
+    exon_supersets <- get_exon_supersets(gtf_path, ncores, save_exon_superset)
+    
+    ### filter for supersets on valid chromosomes ---
+    superset_chr <- sapply(exon_supersets, function(e) S4Vectors::runValue(GenomeInfoDb::seqnames(e)))
+    exon_supersets <- exon_supersets[superset_chr %in% valid_chromosomes]
+    if (length(exon_supersets) == 0){
+      stop('no exon superset found on valid chromosomes. Do the fasta file names match the gtf chromosome names?')
+    }
+    
+    
     ### assign splicing variants with as events to supersets ----
     message('assign variants to supersets...')
     

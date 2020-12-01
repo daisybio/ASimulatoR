@@ -47,13 +47,13 @@ exon_superset = get_exon_supersets(gtf_file)
 #> 
 exon_superset[[1]][1:5, ]
 #> GRanges object with 5 ranges and 10 metadata columns:
-#>       seqnames            ranges strand |       source        type       score       phase         gene_id            transcript_id  template gene_exon_number  tr_start    tr_end
-#>          <Rle>         <IRanges>  <Rle> |  <character> <character> <character> <character>     <character>              <character> <logical>        <integer> <integer> <integer>
-#>   [1]       21 41879270-41879482      - | as_simulator        exon           .           . ENSG00000141956 ENSG00000141956_template      TRUE                1         1       213
-#>   [2]       21 41878996-41879140      - | as_simulator        exon           .           . ENSG00000141956 ENSG00000141956_template      TRUE                2       214       358
-#>   [3]       21 41878695-41878860      - | as_simulator        exon           .           . ENSG00000141956 ENSG00000141956_template      TRUE                3       359       524
-#>   [4]       21 41871494-41871621      - | as_simulator        exon           .           . ENSG00000141956 ENSG00000141956_template      TRUE                4       525       652
-#>   [5]       21 41867300-41867377      - | as_simulator        exon           .           . ENSG00000141956 ENSG00000141956_template      TRUE                5       653       730
+#>       seqnames            ranges strand |      source        type       score       phase         gene_id            transcript_id  template gene_exon_number  tr_start    tr_end
+#>          <Rle>         <IRanges>  <Rle> | <character> <character> <character> <character>     <character>              <character> <logical>        <integer> <integer> <integer>
+#>   [1]       21 41879270-41879482      - |  ASimulatoR        exon           .           . ENSG00000141956 ENSG00000141956_template      TRUE                1         1       213
+#>   [2]       21 41878996-41879140      - |  ASimulatoR        exon           .           . ENSG00000141956 ENSG00000141956_template      TRUE                2       214       358
+#>   [3]       21 41878695-41878860      - |  ASimulatoR        exon           .           . ENSG00000141956 ENSG00000141956_template      TRUE                3       359       524
+#>   [4]       21 41871494-41871621      - |  ASimulatoR        exon           .           . ENSG00000141956 ENSG00000141956_template      TRUE                4       525       652
+#>   [5]       21 41867300-41867377      - |  ASimulatoR        exon           .           . ENSG00000141956 ENSG00000141956_template      TRUE                5       653       730
 #>   -------
 #>   seqinfo: 1 sequence from an unspecified genome; no seqlengths
 ```
@@ -120,7 +120,8 @@ simulate_alternative_splicing(input_dir = input_dir,
 #> loading superset...
 #> finished loading superset
 #> 
-#> create splicing variants and annotation...
+#> assign variants to supersets...
+#> create splicing variants and annotation. This may take a while...
 #> finished creating splicing variants and annotation
 #> 
 #> exporting gtf for read simulation...
@@ -202,7 +203,7 @@ simulate_alternative_splicing(input_dir, event_probs, outdir, ncores = 1L, ...)
 
 | Argument      | Description                                                                                                                                                                                                                                                                                     |
 | ------------- | ----------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
-| `input_dir`   | Character path to directory containing the gtf file from which splice variants are created and genome fasta files passed to polyester.                                                                                                                                                          |
+| `input_dir`   | Character path to directory containing the gtf file from which splice variants are created and genome fasta files with one file per chromosome i.e. <chr_name>.fa passed to polyester                                                                                                           |
 | `event_probs` | Named list/vector containing numerics corresponding to the probabilites to create the event (combination). If `probs_as_freq` is `TRUE` `event_probs` correspond to the relative frequency of occurences for the event(combination) and in this case the sum of all frequencies has to be \<=1. |
 | `outdir`      | character, path to folder where simulated reads and all annotations should be written, with *no* slash at the end. By default, reads are written to current working directory.                                                                                                                  |
 | `ncores`      | the number of cores to be utilized for parallel generation of splice variant creation and read simulation.                                                                                                                                                                                      |
