@@ -93,7 +93,8 @@
 #' are created using a modified version of the polyester R package available on https://github.com/quirinmanz/polyester.
 #'
 #' @param input_dir Character path to directory containing the gtf file 
-#' from which splice variants are created and genome fasta files passed to polyester.
+#' from which splice variants are created and genome fasta files with 
+#' one file per chromosome i.e. <chr_name>.fa passed to polyester.
 #' @param event_probs Named list/vector containing numerics corresponding
 #'  to the probabilites to create the event(combination). 
 #'  If \code{probs_as_freq} is \code{TRUE} \code{event_probs} correspond 
@@ -164,7 +165,7 @@
 #' @import data.table
 #' @importFrom stats runif
 #' @importFrom polyester simulate_experiment
-#' @importFrom parallel mclapply
+#' @importFrom pbmcapply pbmclapply
 
 simulate_alternative_splicing <-
   function(input_dir,
@@ -257,8 +258,8 @@ simulate_alternative_splicing <-
 # probs_as_freq = F
 # error_rate = 0.001
 # readlen = 76
-# max_genes = NULL
-# seq_depth = 1e07
+# max_genes = 1000
+# seq_depth = 1e06
 # num_reps = c(1,1)
 # as_events = c('es', 'mes', 'ir', 'a3', 'a5', 'afe', 'ale', 'mee')
 # as_combs = combn(as_events, 2, FUN = function(...) paste(..., collapse = ','))

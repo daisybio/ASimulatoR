@@ -1,9 +1,6 @@
 #' Create or load exon_supersets from gtf file
 #'
 #' @param gtf_path path to the gtf file from which exon supersets are created
-#' @param valid_chromosomes character vector. Only from these chromosomes exon supersets are created. 
-#' When used from \code{\link{create_splicing_variants_and_annotation}} chromosomes for which fasta files exist are used.
-#' Default \code{NULL}: no chromosome filtering.
 #' @param ncores number of cores used to generate exon supersets in parallel.
 #' Default \code{1}: no parallel computing.
 #' @param save should the exon_supersets be saved to .rda file?
@@ -12,18 +9,13 @@
 #' @export
 #' @return exon supersets generated from gtf file
 #' @import rtracklayer
-#' @importFrom parallel mclapply
+#' @importFrom pbmcapply pbmclapply
 get_exon_supersets <-
-  function(gtf_path, valid_chromosomes=NULL, ncores=1L, save=TRUE) {
+  function(gtf_path, ncores=1L, save=TRUE) {
     exon_supersets_path <- sprintf('%s.exon_superset.rda', gtf_path)
     if (file.exists(exon_supersets_path)) {
       message('loading superset...')
       load(exon_supersets_path)
-      if (!is.null(valid_chromosomes))
-      exon_supersets <-
-        exon_supersets[as.character(sapply(exon_supersets, function(g)
-          S4Vectors::runValue(GenomeInfoDb::seqnames(g))))
-          %in% valid_chromosomes]
       message('finished loading superset')
       message('')
     } else {
@@ -32,9 +24,6 @@ get_exon_supersets <-
       message('finished importing gtf')
       message('')
 
-      if (!is.null(valid_chromosomes))
-        exon_supersets <-
-          exon_supersets[S4Vectors::runValue(GenomeInfoDb::seqnames(exon_supersets)) %in% valid_chromosomes]
       exon_supersets <-
         exon_supersets[exon_supersets$type == 'exon']
       exon_supersets <-
@@ -54,7 +43,7 @@ get_exon_supersets <-
           S4Vectors::mcols(template) <-
             cbind(
               S4Vectors::DataFrame(
-                source = "as_simulator",
+                source = "ASimulatoR",
                 type = "exon",
                 score = ".",
                 phase = ".",

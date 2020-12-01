@@ -10,12 +10,12 @@ Authors@R: c(person("Quirin", "Manz", role = c("aut", 'cre'),
                      email = "olga.tsoy@wzw.tum.de"))
 Author: Amit Fenn, Quirin Manz, Olga Tsoy
 Maintainer: Quirin Manz <qu.manz@tum.de>
-Depends: R (>= 3.6), data.table (>= 1.9.8), rtracklayer, polyester, methods, pbmcapply, parallel
+Depends: R (>= 3.6), data.table (>= 1.9.8), rtracklayer, polyester, methods, pbmcapply
 biocViews: 
 Remotes: biomedbigdata/polyester
 Suggests: ggbio
 Description: Simulates RNA-Seq experiments with alternative splice variants using the polyester R package.
-License: GPL (>= 2)
+License: GPL-3 + file LICENSE
 URL: https://github.com/biomedbigdata/ASimulatoR
 BugReports: https://github.com/biomedbigdata/ASimulatoR/issues
 RoxygenNote: 7.1.0

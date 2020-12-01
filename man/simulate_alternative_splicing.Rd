@@ -8,7 +8,8 @@ simulate_alternative_splicing(input_dir, event_probs, outdir, ncores = 1L, ...)
 }
 \arguments{
 \item{input_dir}{Character path to directory containing the gtf file 
-from which splice variants are created and genome fasta files passed to polyester.}
+from which splice variants are created and genome fasta files with 
+one file per chromosome i.e. <chr_name>.fa passed to polyester.}
 
 \item{event_probs}{Named list/vector containing numerics corresponding
 to the probabilites to create the event(combination). 

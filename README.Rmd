@@ -144,7 +144,7 @@ simulate_alternative_splicing(input_dir, event_probs, outdir, ncores = 1L, ...)
 
 Argument      |Description
 ------------- |----------------
-```input_dir```     |     Character path to directory containing the gtf file from which splice variants are created and genome fasta files passed to polyester.
+```input_dir```     |     Character path to directory containing the gtf file from which splice variants are created and genome fasta files with one file per chromosome i.e. <chr_name>.fa passed to polyester
 ```event_probs```     |     Named list/vector containing numerics corresponding to the probabilites to create the event (combination). If `probs_as_freq` is `TRUE`  `event_probs` correspond to the relative frequency of occurences for the event(combination) and in this case the sum of all frequencies has to be <=1.
 ```outdir```     |     character, path to folder where simulated reads and all annotations should be written, with *no* slash at the end. By default, reads are written to current working directory.
 ```ncores```     |     the number of cores to be utilized for parallel generation of splice variant creation and read simulation.
