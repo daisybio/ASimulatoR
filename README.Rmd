@@ -31,7 +31,7 @@ Please note that we use a custom version of Polyester, that is available at http
 ## Example
 
 ### Creating exon supersets
-Firstly, we create exon supersets by joining all exons of a gene from a gtf file. 
+Firstly, we create exon supersets by joining all exons of a gene from a gtf/gff file. 
 These supersets are then used to create splice variants. 
 Since all exons from one gene are used to create the exon superset, you may find that the term exon superset is used analogously to gene.
 
@@ -127,7 +127,7 @@ event_anno[grepl(gene_id, event_anno$template) | grepl(gene_id, event_anno$varia
 ### Description
 
 
- Firstly, exon supersets are created by joining all exons of a gene from a gtf file.
+ Firstly, exon supersets are created by joining all exons of a gene from a gtf/gff file.
  Next, splicing variants are created with documentation and event annotation based on the users input.
  Finally, fastq files containing RNA-seq reads from the splice variants and the real exon and junction coverage
  are created using a modified version of the polyester R package available on https://github.com/quirinmanz/polyester.
@@ -144,7 +144,7 @@ simulate_alternative_splicing(input_dir, event_probs, outdir, ncores = 1L, ...)
 
 Argument      |Description
 ------------- |----------------
-```input_dir```     |     Character path to directory containing the gtf file from which splice variants are created and genome fasta files with one file per chromosome i.e. <chr_name>.fa passed to polyester
+```input_dir```     |     Character path to directory containing the gtf/gff file from which splice variants are created and genome fasta files with one file per chromosome i.e. <chr_name>.fa passed to polyester
 ```event_probs```     |     Named list/vector containing numerics corresponding to the probabilites to create the event (combination). If `probs_as_freq` is `TRUE`  `event_probs` correspond to the relative frequency of occurences for the event(combination) and in this case the sum of all frequencies has to be <=1.
 ```outdir```     |     character, path to folder where simulated reads and all annotations should be written, with *no* slash at the end. By default, reads are written to current working directory.
 ```ncores```     |     the number of cores to be utilized for parallel generation of splice variant creation and read simulation.

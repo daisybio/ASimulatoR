@@ -54,7 +54,7 @@
 #' This is not intended to be called directly;
 #' instead it is meant to be called via \code{\link{simulate_alternative_splicing}}
 #'
-#' @param gtf_path path to the gtf file from which splice variants are created
+#' @param gtf_path path to the gtf/gff file from which splice variants are created
 #' @param valid_chromosomes character vector. Only from these chromosomes splice variants are created. 
 #' When used from \code{\link{create_splicing_variants_and_annotation}} chromosomes for which fasta files exist are used.
 #' @param event_probs Named list/vector containing numerics corresponding

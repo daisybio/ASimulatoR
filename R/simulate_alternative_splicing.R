@@ -3,7 +3,7 @@
   if (!dir.exists(input_dir)) {
     stop(sprintf("could not find input directory %s", input_dir))
   } else {
-    gtfs <- list.files(input_dir, pattern = '\\.gtf$|\\.gff$')
+    gtfs <- list.files(input_dir, pattern = '\\.gtf$|\\.gff3?$')
     if (length(gtfs) == 0) {
       stop(sprintf("could not find gtf/gff in input directory %s", input_dir))
     } else {
@@ -87,12 +87,12 @@
 
 #' Simulate RNA-seq experiment with splicing variants 
 #'
-#' Firstly, exon supersets are created by joining all exons of a gene from a gtf file.
+#' Firstly, exon supersets are created by joining all exons of a gene from a gtf/gff file.
 #' Next, splicing variants are created with documentation and event annotation based on the users input.
 #' Finally, fastq files containing RNA-seq reads from the splice variants and the real exon and junction coverage 
 #' are created using a modified version of the polyester R package available on https://github.com/quirinmanz/polyester.
 #'
-#' @param input_dir Character path to directory containing the gtf file 
+#' @param input_dir Character path to directory containing the gtf/gff file 
 #' from which splice variants are created and genome fasta files with 
 #' one file per chromosome i.e. <chr_name>.fa passed to polyester.
 #' @param event_probs Named list/vector containing numerics corresponding
