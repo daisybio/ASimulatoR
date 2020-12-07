@@ -15,11 +15,12 @@ create_splicing_variants_and_annotation(
   exon_junction_coverage = T,
   multi_events_per_exon = F,
   probs_as_freq = F,
-  save_exon_superset = T
+  save_exon_superset = T,
+  novel_variants = NULL
 )
 }
 \arguments{
-\item{gtf_path}{path to the gtf file from which splice variants are created}
+\item{gtf_path}{path to the gtf/gff file from which splice variants are created}
 
 \item{valid_chromosomes}{character vector. Only from these chromosomes splice variants are created. 
 When used from \code{\link{create_splicing_variants_and_annotation}} chromosomes for which fasta files exist are used.}
@@ -59,6 +60,9 @@ Default \code{FALSE}}
 
 \item{save_exon_superset}{should the exon_supersets be saved to .rda file?
 Default \code{TRUE}}
+
+\item{novel_variants}{Numeric value between 0 and 1 indicating the percentage 
+of splicing variants that will not be written to an additional gtf file splicing_variants_novel.gtf.}
 }
 \value{
 if \code{exon_junction_coverage = TRUE} the exons, junctions and retained introns as data table in gtf style

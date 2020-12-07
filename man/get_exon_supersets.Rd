@@ -2,12 +2,12 @@
 % Please edit documentation in R/get_exon_supersets.R
 \name{get_exon_supersets}
 \alias{get_exon_supersets}
-\title{Create or load exon_supersets from gtf file}
+\title{Create or load exon_supersets from gtf/gff file}
 \usage{
 get_exon_supersets(gtf_path, ncores = 1L, save = TRUE)
 }
 \arguments{
-\item{gtf_path}{path to the gtf file from which exon supersets are created}
+\item{gtf_path}{path to the gtf/gff file from which exon supersets are created}
 
 \item{ncores}{number of cores used to generate exon supersets in parallel.
 Default \code{1}: no parallel computing.}
@@ -16,8 +16,8 @@ Default \code{1}: no parallel computing.}
 Default \code{TRUE}}
 }
 \value{
-exon supersets generated from gtf file
+exon supersets generated from gtf/gff file
 }
 \description{
-Create or load exon_supersets from gtf file
+Create or load exon_supersets from gtf/gff file
 }

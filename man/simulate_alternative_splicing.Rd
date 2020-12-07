@@ -7,7 +7,7 @@
 simulate_alternative_splicing(input_dir, event_probs, outdir, ncores = 1L, ...)
 }
 \arguments{
-\item{input_dir}{Character path to directory containing the gtf file 
+\item{input_dir}{Character path to directory containing the gtf/gff file 
 from which splice variants are created and genome fasta files with 
 one file per chromosome i.e. <chr_name>.fa passed to polyester.}
 
@@ -33,7 +33,7 @@ No return, but simulated reads, a simulation info file,
   to \code{outdir}.
 }
 \description{
-Firstly, exon supersets are created by joining all exons of a gene from a gtf file.
+Firstly, exon supersets are created by joining all exons of a gene from a gtf/gff file.
 Next, splicing variants are created with documentation and event annotation based on the users input.
 Finally, fastq files containing RNA-seq reads from the splice variants and the real exon and junction coverage 
 are created using a modified version of the polyester R package available on https://github.com/quirinmanz/polyester.
@@ -47,6 +47,8 @@ Reads are simulated from a GTF file which is produced by
   simulation. For polyester parameters refer to \code{\link{simulate_experiment}}:
   
   \itemize{
+  \item \code{novel_variants}: Numeric value between 0 and 1 indicating the percentage 
+  of splicing variants that will not be written to an additional gtf file splicing_variants_novel.gtf.
   \item \code{write_gff}: Additionally to the gtf file containing the splice variants,
   a gff3 file with the same content will be printed to the outdir. 
   Default \code{TRUE}
