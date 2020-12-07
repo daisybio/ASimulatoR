@@ -65,6 +65,9 @@
   } else {
     stopifnot(is.logical(args$save_exon_superset))
   }
+  if (!is.null(args$novel_variants)){
+    stopifnot(args$novel_variants >= 0 && args$novel_variants <= 1)
+  }
 
   return(args)
 }
@@ -116,6 +119,8 @@
 #'   simulation. For polyester parameters refer to \code{\link{simulate_experiment}}:
 #'   
 #'   \itemize{
+#'   \item \code{novel_variants}: Numeric value between 0 and 1 indicating the percentage 
+#'   of splicing variants that will not be written to an additional gtf file splicing_variants_novel.gtf.
 #'   \item \code{write_gff}: Additionally to the gtf file containing the splice variants,
 #'   a gff3 file with the same content will be printed to the outdir. 
 #'   Default \code{TRUE}
@@ -210,7 +215,8 @@ simulate_alternative_splicing <-
       args$exon_junction_coverage,
       args$multi_events_per_exon,
       args$probs_as_freq,
-      args$save_exon_superset
+      args$save_exon_superset,
+      args$novel_variants
     )
 
     
@@ -253,7 +259,7 @@ simulate_alternative_splicing <-
 # ## set parameters
 # input = '../ensembl_data/Homo_sapiens.GRCh38.99/'
 # output = '../ensembl_data/Homo_sapiens.GRCh38.99_out'
-# ncores = 4
+# ncores = 1
 # multi_events_per_exon = T
 # probs_as_freq = F
 # error_rate = 0.001

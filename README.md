@@ -24,9 +24,9 @@ at <https://github.com/biomedbigdata/polyester>
 ### Creating exon supersets
 
 Firstly, we create exon supersets by joining all exons of a gene from a
-gtf file. These supersets are then used to create splice variants. Since
-all exons from one gene are used to create the exon superset, you may
-find that the term exon superset is used analogously to gene.
+gtf/gff file. These supersets are then used to create splice variants.
+Since all exons from one gene are used to create the exon superset, you
+may find that the term exon superset is used analogously to gene.
 
 ``` r
 suppressMessages(library(ASimulatoR))
@@ -36,8 +36,8 @@ gtf_file = system.file('extdata', 'Homo_sapiens.GRCh38.99.21.gtf', package = 'AS
 
 # by default the produced superset will be saved as .rda file into the same directory
 exon_superset = get_exon_supersets(gtf_file)
-#> importing gtf...
-#> finished importing gtf
+#> importing gtf/gff...
+#> finished importing gtf/gff
 #> 
 #> creating superset...
 #> finished creating superset
@@ -187,8 +187,8 @@ event_anno[grepl(gene_id, event_anno$template) | grepl(gene_id, event_anno$varia
 ### Description
 
 Firstly, exon supersets are created by joining all exons of a gene from
-a gtf file. Next, splicing variants are created with documentation and
-event annotation based on the users input. Finally, fastq files
+a gtf/gff file. Next, splicing variants are created with documentation
+and event annotation based on the users input. Finally, fastq files
 containing RNA-seq reads from the splice variants and the real exon and
 junction coverage are created using a modified version of the polyester
 R package available on <https://github.com/quirinmanz/polyester>.
@@ -203,7 +203,7 @@ simulate_alternative_splicing(input_dir, event_probs, outdir, ncores = 1L, ...)
 
 | Argument      | Description                                                                                                                                                                                                                                                                                     |
 | ------------- | ----------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
-| `input_dir`   | Character path to directory containing the gtf file from which splice variants are created and genome fasta files with one file per chromosome i.e. <chr_name>.fa passed to polyester                                                                                                           |
+| `input_dir`   | Character path to directory containing the gtf/gff file from which splice variants are created and genome fasta files with one file per chromosome i.e. <chr_name>.fa passed to polyester                                                                                                       |
 | `event_probs` | Named list/vector containing numerics corresponding to the probabilites to create the event (combination). If `probs_as_freq` is `TRUE` `event_probs` correspond to the relative frequency of occurences for the event(combination) and in this case the sum of all frequencies has to be \<=1. |
 | `outdir`      | character, path to folder where simulated reads and all annotations should be written, with *no* slash at the end. By default, reads are written to current working directory.                                                                                                                  |
 | `ncores`      | the number of cores to be utilized for parallel generation of splice variant creation and read simulation.                                                                                                                                                                                      |
@@ -217,6 +217,10 @@ Reads are simulated from a GTF file which is produced by
 Several optional parameters can be passed to this function to adjust the
 simulation. For polyester parameters refer to `simulate_experiment` from
 the polyester R package:
+
+  - `novel_variants` : Numeric value between 0 and 1 indicating the
+    percentage of splicing variants that will be suppressed in an
+    additional gtf file splicing\_variants\_novel.gtf.
 
   - `write_gff` : Additionally to the gtf file containing the splice
     variants, a gff3 file with the same content will be printed to the

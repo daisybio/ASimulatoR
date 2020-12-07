@@ -158,6 +158,7 @@ Argument      |Description
  Several optional parameters can be passed to this function to adjust the simulation. For polyester parameters refer to `simulate_experiment` from the polyester R package:
  
     
+*   `novel_variants` : Numeric value between 0 and 1 indicating the percentage of splicing variants that will be suppressed in an additional gtf file splicing_variants_novel.gtf.
 
 *   `write_gff` : Additionally to the gtf file containing the splice variants, a gff3 file with the same content will be printed to the outdir. Default `TRUE`   
 

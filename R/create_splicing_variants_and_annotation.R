@@ -67,6 +67,8 @@
 #'   reads are written to current working directory.
 #' @param ncores the number of cores to be utilized for parallel generation
 #'   of splice variants.
+#' @param novel_variants Numeric value between 0 and 1 indicating the percentage 
+#'   of splicing variants that will not be written to an additional gtf file splicing_variants_novel.gtf.
 #' @param write_gff Additionally to the gtf file containing the splice variants,
 #'   a gff3 file with the same content will be printed to the outdir. 
 #'   Default \code{TRUE}
@@ -101,7 +103,8 @@ create_splicing_variants_and_annotation <-
            exon_junction_coverage = T,
            multi_events_per_exon = F,
            probs_as_freq = F,
-           save_exon_superset = T) {
+           save_exon_superset = T,
+           novel_variants = NULL) {
 
     ### create exon_superset ----
     exon_supersets <- get_exon_supersets(gtf_path, ncores, save_exon_superset)
@@ -110,7 +113,7 @@ create_splicing_variants_and_annotation <-
     superset_chr <- sapply(exon_supersets, function(e) S4Vectors::runValue(GenomeInfoDb::seqnames(e)))
     exon_supersets <- exon_supersets[superset_chr %in% valid_chromosomes]
     if (length(exon_supersets) == 0){
-      stop('no exon superset found on valid chromosomes. Do the fasta file names match the gtf chromosome names?')
+      stop('no exon superset found on valid chromosomes. Do the fasta file names match the gtf/gff chromosome names?')
     }
     
     
@@ -367,11 +370,21 @@ create_splicing_variants_and_annotation <-
 
     ### exporting ----
     message('exporting gtf for read simulation...')
+
     gene_idx <- variants$type == "gene"
     transcript_idx <- variants$type == "transcript"
     exon_idx <- variants$type == "exon"
     rtracklayer::export(variants[gene_idx | transcript_idx | exon_idx],
                         file.path(outdir, 'splicing_variants.gtf'))
+    if(!is.null(novel_variants)) {
+      variant_ids <-
+        variants[transcript_idx]$transcript_id[!endsWith(variants[transcript_idx]$transcript_id, 'template')]
+      remove_from_novel <- 
+        sample(variant_ids , floor(length(variant_ids)*novel_variants))
+      rtracklayer::export(variants[(gene_idx | transcript_idx | exon_idx) 
+                                   & (!variants$transcript_id %in% remove_from_novel)],
+                          file.path(outdir, 'splicing_variants_novel.gtf'))
+    }
     if (write_gff) {
       # create Id and Parent field before exporting
       variants$Parent <- character(length(variants))
@@ -385,6 +398,11 @@ create_splicing_variants_and_annotation <-
       # export gff3
       rtracklayer::export(variants[gene_idx | transcript_idx | exon_idx],
                           file.path(outdir, 'splicing_variants.gff3'))
+      if(!is.null(novel_variants)) {
+        rtracklayer::export(variants[(gene_idx | transcript_idx | exon_idx) 
+                                     & (!variants$transcript_id %in% remove_from_novel)],
+                            file.path(outdir, 'splicing_variants_novel.gff3'))
+      }
       variants$ID <- NULL
       variants$Parent <- NULL
     }
