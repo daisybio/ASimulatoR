@@ -130,7 +130,7 @@ event_anno[grepl(gene_id, event_anno$template) | grepl(gene_id, event_anno$varia
  Firstly, exon supersets are created by joining all exons of a gene from a gtf/gff file.
  Next, splicing variants are created with documentation and event annotation based on the users input.
  Finally, fastq files containing RNA-seq reads from the splice variants and the real exon and junction coverage
- are created using a modified version of the polyester R package available on https://github.com/quirinmanz/polyester.
+ are created using a modified version of the polyester R package available on https://github.com/biomedbigdata/polyester.
 
 
 ### Usage
@@ -148,6 +148,7 @@ Argument      |Description
 ```event_probs```     |     Named list/vector containing numerics corresponding to the probabilites to create the event (combination). If `probs_as_freq` is `TRUE`  `event_probs` correspond to the relative frequency of occurences for the event(combination) and in this case the sum of all frequencies has to be <=1.
 ```outdir```     |     character, path to folder where simulated reads and all annotations should be written, with *no* slash at the end. By default, reads are written to current working directory.
 ```ncores```     |     the number of cores to be utilized for parallel generation of splice variant creation and read simulation.
+```preset```     |     if you want to use preset parameters one of 'event_partition', 'rna_seq_experiment', 'event_combination_2'
 ```...```     |     any of several other arguments that can be used to add nuance to the simulation and splice variant creation. See details.
 
 ### Details
@@ -178,7 +179,9 @@ Argument      |Description
 
 *   `strand_specific` : Strand-specific simulation (1st read forward strand, 2nd read reverse strand with respect to transcript sequence). Default `TRUE` .  
 
-*   `meanmodel` : `reads_per_transcripts` as a function of transcript length. Default `TRUE` .  
+*   `meanmodel` : `reads_per_transcripts` as a function of transcript length.  Always `TRUE` in ASimulatoR.  
+
+*   `frag_GC_bias`: A sample-specific GC content bias on the fragment level. Currently not supported in ASimulatoR: always 'none'.
 
 *   `verbose` : Should progress messages be printed during the sequencing process? Default `TRUE` .  
 

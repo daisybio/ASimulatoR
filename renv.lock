@@ -264,10 +264,10 @@
     },
     "data.table": {
       "Package": "data.table",
-      "Version": "1.12.8",
+      "Version": "1.13.4",
       "Source": "Repository",
       "Repository": "CRAN",
-      "Hash": "cd711af60c47207a776213a368626369"
+      "Hash": "626afb25b020646f53105e6485e695c6"
     },
     "desc": {
       "Package": "desc",
@@ -452,10 +452,10 @@
     },
     "logspline": {
       "Package": "logspline",
-      "Version": "2.1.15",
+      "Version": "2.1.16",
       "Source": "Repository",
       "Repository": "CRAN",
-      "Hash": "de5d1c81e8a77d542e571dd13c54573e"
+      "Hash": "c339067db408d61f693afc02aea00fd2"
     },
     "magrittr": {
       "Package": "magrittr",
@@ -544,8 +544,8 @@
       "RemoteRepo": "polyester",
       "RemoteUsername": "biomedbigdata",
       "RemoteRef": "master",
-      "RemoteSha": "df45edf691a53de075e830fe01d44447582c984c",
-      "Hash": "01b92c2e3e31845b3f2879376a8e5da5"
+      "RemoteSha": "02a4d33ae8e719b6529d4a236f446e441b383d90",
+      "Hash": "c6fd9dce22a80e67ce1fe35824264733"
     },
     "praise": {
       "Package": "praise",

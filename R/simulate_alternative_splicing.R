@@ -1,4 +1,5 @@
-.check_parameters <- function(args, input_dir) {
+.check_input_dir <- function(input_dir) {
+  params <- list()
   # check input dir
   if (!dir.exists(input_dir)) {
     stop(sprintf("could not find input directory %s", input_dir))
@@ -7,69 +8,72 @@
     if (length(gtfs) == 0) {
       stop(sprintf("could not find gtf/gff in input directory %s", input_dir))
     } else {
-      args$gtf_path <- file.path(input_dir, gtfs[1])
+      params$gtf_path <- file.path(input_dir, gtfs[1])
       if (length(gtfs) > 1) {
-        warning(sprintf("found more than one gtf/gff file in input directory. using %s...", args$gtf_path))
+        warning(sprintf("found more than one gtf/gff file in input directory. using %s...", params$gtf_path))
       }
     }
     fastas <- list.files(input_dir, pattern = '\\.fa$')
     if (length(fastas) == 0)
       stop(sprintf("could not find fasta files in input directory %s", input_dir))
-    args$valid_chromosomes <- sub('.fa', '', fastas)
+    params$valid_chromosomes <- sub('.fa', '', fastas)
     message(sprintf("found the following fasta files: %s", paste(fastas, collapse = ", ")))
     message("note that splice variants will only be constructed from chromosomes that have a corresponding fasta file")
     message('')
+    return(params)
   }
-  # check other params
-  
-  if (is.null(args$exon_junction_coverage))
-    args$exon_junction_coverage <- T
+}
+
+.check_parameters <- function(params) {
+  # check other arguments
+  if (is.null(params$exon_junction_coverage))
+    params$exon_junction_coverage <- T
   else
-    stopifnot(is.logical(args$exon_junction_coverage))
-  if (is.null(args$error_rate))
-    args$error_rate <- 0
+    stopifnot(is.logical(params$exon_junction_coverage))
+  if (is.null(params$error_rate))
+    params$error_rate <- 0
   else
-    stopifnot(is.numeric(args$error_rate))
-  if (is.null(args$strand_specific))
-    args$strand_specific <- T
+    stopifnot(is.numeric(params$error_rate))
+  if (is.null(params$strand_specific))
+    params$strand_specific <- T
   else
-    stopifnot(is.logical(args$strand_specific))
-  if (is.null(args$shuffle))
-    args$shuffle <- T
-  stopifnot(is.logical(args$shuffle))
-  if (is.null(args$fastq))
-    args$fastq <- T
+    stopifnot(is.logical(params$strand_specific))
+  if (is.null(params$shuffle))
+    params$shuffle <- T
+  stopifnot(is.logical(params$shuffle))
+  if (is.null(params$fastq))
+    params$fastq <- T
   else
-    stopifnot(is.logical(args$fastq))
-  if (is.null(args$write_gff))
-    args$write_gff <- T
+    stopifnot(is.logical(params$fastq))
+  if (is.null(params$write_gff))
+    params$write_gff <- T
   else
-    stopifnot(is.logical(args$write_gff))
-  if (is.null(args$multi_events_per_exon))
-    args$multi_events_per_exon <- F
+    stopifnot(is.logical(params$write_gff))
+  if (is.null(params$multi_events_per_exon))
+    params$multi_events_per_exon <- F
   else
-    stopifnot(is.logical(args$multi_events_per_exon))
-  if (is.null(args$probs_as_freq))
-    args$probs_as_freq <- F
+    stopifnot(is.logical(params$multi_events_per_exon))
+  if (is.null(params$probs_as_freq))
+    params$probs_as_freq <- F
   else
-    stopifnot(is.logical(args$probs_as_freq))
-  if (is.null(args$verbose))
-    args$verbose <- T
+    stopifnot(is.logical(params$probs_as_freq))
+  if (is.null(params$verbose))
+    params$verbose <- T
   else
-    stopifnot(is.logical(args$verbose))
-  if (!is.null(args$seq_depth)) {
-    stopifnot(is.numeric(args$seq_depth))
+    stopifnot(is.logical(params$verbose))
+  if (!is.null(params$seq_depth)) {
+    stopifnot(is.numeric(params$seq_depth))
   }
-  if (is.null(args$save_exon_superset)) {
-    args$save_exon_superset <- T
+  if (is.null(params$save_exon_superset)) {
+    params$save_exon_superset <- T
   } else {
-    stopifnot(is.logical(args$save_exon_superset))
+    stopifnot(is.logical(params$save_exon_superset))
   }
-  if (!is.null(args$novel_variants)){
-    stopifnot(args$novel_variants >= 0 && args$novel_variants <= 1)
+  if (!is.null(params$novel_variants)){
+    stopifnot(params$novel_variants >= 0 && params$novel_variants <= 1)
   }
 
-  return(args)
+  return(params)
 }
 
 .check_event_probs <- function(event_probs, probs_as_freq){
@@ -93,7 +97,7 @@
 #' Firstly, exon supersets are created by joining all exons of a gene from a gtf/gff file.
 #' Next, splicing variants are created with documentation and event annotation based on the users input.
 #' Finally, fastq files containing RNA-seq reads from the splice variants and the real exon and junction coverage 
-#' are created using a modified version of the polyester R package available on https://github.com/quirinmanz/polyester.
+#' are created using a modified version of the polyester R package available on https://github.com/biomedbigdata/polyester.
 #'
 #' @param input_dir Character path to directory containing the gtf/gff file 
 #' from which splice variants are created and genome fasta files with 
@@ -108,6 +112,8 @@
 #'   reads are written to current working directory.
 #' @param ncores the number of cores to be utilized for parallel generation
 #'   of splice variant creation and read simulation.
+#' @param preset if you want to use preset parameters one of 
+#' 'event_partition', 'rna_seq_experiment', 'event_combination_2'
 #' @param ... any of several other arguments that can be used to add nuance
 #'   to the simulation and splice variant creation. See details.
 #'
@@ -148,7 +154,8 @@
 #'   We plan on improving this in the future.
 #'   \item \code{strand_specific}: Strand-specific simulation (1st read forward strand,
 #'   2nd read reverse strand with respect to transcript sequence). Default \code{TRUE}.
-#'   \item \code{meanmodel}: \code{reads_per_transcripts} as a function of transcript length. Default \code{TRUE}.
+#'   \item \code{meanmodel}: \code{reads_per_transcripts} as a function of transcript length. Always \code{TRUE} in ASimulatoR.
+#'   \item \code{frag_GC_bias}: A sample-specific GC content bias on the fragment level. Currently not supported in ASimulatoR: always 'none'.
 #'   \item \code{verbose}: Should progress messages be printed during the sequencing process? Default \code{TRUE}.
 #'   \item \code{exon_junction_coverage}: Should the coverage of exons, junctions and retained introns be determined? Default \code{TRUE}.
 #'   \item \code{exon_junction_table}: If \code{exon_junction_coverage=TRUE} a \code{data.table} produced by \code{\link{create_splicing_variants_and_annotation}} 
@@ -169,31 +176,46 @@
 #' @export
 #' @import data.table
 #' @importFrom stats runif
+#' @importFrom utils data
 #' @importFrom polyester simulate_experiment
 #' @importFrom pbmcapply pbmclapply
 
 simulate_alternative_splicing <-
   function(input_dir,
-           event_probs,
+           event_probs = NULL,
            outdir,
            ncores = 1L,
+           preset = NULL,
            ...)
   {
-    args <- .check_parameters(list(...), input_dir)
+    # check parameters and compatibility
+    params <- .check_input_dir(input_dir)
     
-    event_probs <- .check_event_probs(event_probs, args$probs_as_freq)
+    preset_res <- assign_preset(preset, event_probs)
+    
+    extras <- list(...)
+    
+    extras_presets <- .check_parameters(c(extras, 
+                                          preset_res[!(names(preset_res) %in% names(extras))]))
+    params <- c(extras_presets, 
+                params)
+    
+    # means that we have preset event_probs
+    if (is.null(event_probs)) event_probs <- params$event_probs
+    event_probs <- .check_event_probs(event_probs, params$probs_as_freq)
 
     # Store the current random number generator to restore at the end
     # Changing to L'Ecuyer-CMRG allows for reproducibility for parallel runs
     # See ?parallel::mc.parallel for more information
     old_rng <- RNGkind()
     RNGkind("L'Ecuyer-CMRG")
-    if (is.null(args$seed)) {
-      args$seed <- 142 # allows any run to be reproducible
+    if (is.null(params$seed)) {
+      params$seed <- 142 # allows any run to be reproducible
     }
-    set.seed(args$seed)
+    set.seed(params$seed)
     data.table::setDTthreads(ncores)
-    args$ncores <- ncores
+    message(sprintf('set data.table threads to %s', data.table::getDTthreads()))
+    params$ncores <- ncores
 
     # prep output directory
     outdir <- gsub(' ', '\\\\ ', outdir)
@@ -204,28 +226,28 @@ simulate_alternative_splicing <-
     }
 
     ### create the splice variants for every event ----
-    args$exon_junction_table <- create_splicing_variants_and_annotation(
-      args$gtf_path,
-      args$valid_chromosomes,
+    params$exon_junction_table <- create_splicing_variants_and_annotation(
+      params$gtf_path,
+      params$valid_chromosomes,
       event_probs,
       outdir,
-      args$ncores,
-      args$write_gff,
-      args$max_genes,
-      args$exon_junction_coverage,
-      args$multi_events_per_exon,
-      args$probs_as_freq,
-      args$save_exon_superset,
-      args$novel_variants
+      params$ncores,
+      params$write_gff,
+      params$max_genes,
+      params$exon_junction_coverage,
+      params$multi_events_per_exon,
+      params$probs_as_freq,
+      params$save_exon_superset,
+      params$novel_variants
     )
 
     
-    tr_per_gene <- args$exon_junction_table[, .(nr_transcripts = length(unique(transcript_id))), by = gene_id]$nr_transcripts
-    args$fold_changes <- do.call(rbind, lapply(tr_per_gene, function(nr_tr){
+    tr_per_gene <- params$exon_junction_table[, .(nr_transcripts = length(unique(transcript_id))), by = gene_id]$nr_transcripts
+    params$fold_changes <- do.call(rbind, lapply(tr_per_gene, function(nr_tr){
       if (nr_tr == 1)
-        return(matrix(rep(1, 2), ncol = ifelse(is.null(args$num_reps), 2, length(args$num_reps))))
+        return(matrix(rep(1, 2), ncol = ifelse(is.null(params$num_reps), 2, length(params$num_reps))))
       else {
-        nr_groups = ifelse(is.null(args$num_reps), 2, length(args$num_reps))
+        nr_groups = ifelse(is.null(params$num_reps), 2, length(params$num_reps))
         if (runif(1) < 0.5) 
           return(matrix(rep(1, nr_groups * nr_tr), nrow = nr_tr))
         m = matrix(c(2, rep(1, nr_tr - 1)))
@@ -240,14 +262,15 @@ simulate_alternative_splicing <-
       }
     }))
     
-    args$meanmodel <- T
-    args$gtf <- file.path(outdir, 'splicing_variants.gtf')
-    args$seqpath <- input_dir
-    args$outdir <- outdir
+    params$meanmodel <- T
+    params$frag_GC_bias <- NULL
+    params$gtf <- file.path(outdir, 'splicing_variants.gtf')
+    params$seqpath <- input_dir
+    params$outdir <- outdir
 
     ### simulate with polyester----
     message('start simulation with polyester:')
-    do.call(simulate_experiment, args)
+    do.call(simulate_experiment, params)
 
     # Restore whatever RNG the user had set before running this function
     RNGkind(old_rng[1], old_rng[2])
@@ -257,46 +280,9 @@ simulate_alternative_splicing <-
 
 # ## debugging ----
 # ## set parameters
-# input = '../ensembl_data/Homo_sapiens.GRCh38.99/'
-# output = '../ensembl_data/Homo_sapiens.GRCh38.99_out'
-# ncores = 1
-# multi_events_per_exon = T
-# probs_as_freq = F
-# error_rate = 0.001
-# readlen = 76
-# max_genes = 1000
-# seq_depth = 1e06
-# num_reps = c(1,1)
-# as_events = c('es', 'mes', 'ir', 'a3', 'a5', 'afe', 'ale', 'mee')
-# as_combs = combn(as_events, 2, FUN = function(...) paste(..., collapse = ','))
-# event_probs = rep(1/(length(as_combs) + 1), length(as_combs))
-# names(event_probs) = as_combs
-# outdir = sprintf(
-#   '%s/maxGenes%d_SeqDepth%g_errRate%g_readlen%d_multiEventsPerExon%s_probsAsFreq%s',
-#   output,
-#   ifelse(is.null(max_genes), 0, max_genes),
-#   seq_depth,
-#   error_rate,
-#   readlen,
-#   multi_events_per_exon,
-#   probs_as_freq
-# )
+# input = '../ensembl_data/Homo_sapiens.GRCh38.99'
+# output = '../ensembl_data/Homo_sapiens.GRCh38.99_out/rna_seq_experiment'
 # 
-# params = list(
-#   ncores = ncores,
-#   input_dir = input,
-#   event_probs = event_probs,
-#   outdir = outdir,
-#   seq_depth = seq_depth,
-#   max_genes = max_genes,
-#   error_rate = error_rate,
-#   readlen = readlen,
-#   multi_events_per_exon = multi_events_per_exon,
-#   probs_as_freq = probs_as_freq,
-#   num_reps = num_reps
-# )
-
-
-## run simulator
-# library(ASimulatoR)
-# do.call(simulate_alternative_splicing, params)
+# ## run simulator
+# # library(ASimulatoR)
+# simulate_alternative_splicing(input_dir = input, outdir = output, preset = 'rna_seq_experiment', max_genes = 100, seq_depth = 2e6)

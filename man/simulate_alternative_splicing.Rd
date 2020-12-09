@@ -4,7 +4,14 @@
 \alias{simulate_alternative_splicing}
 \title{Simulate RNA-seq experiment with splicing variants}
 \usage{
-simulate_alternative_splicing(input_dir, event_probs, outdir, ncores = 1L, ...)
+simulate_alternative_splicing(
+  input_dir,
+  event_probs = NULL,
+  outdir,
+  ncores = 1L,
+  preset = NULL,
+  ...
+)
 }
 \arguments{
 \item{input_dir}{Character path to directory containing the gtf/gff file 
@@ -24,6 +31,9 @@ reads are written to current working directory.}
 \item{ncores}{the number of cores to be utilized for parallel generation
 of splice variant creation and read simulation.}
 
+\item{preset}{if you want to use preset parameters one of 
+'event_partition', 'rna_seq_experiment', 'event_combination_2'}
+
 \item{...}{any of several other arguments that can be used to add nuance
 to the simulation and splice variant creation. See details.}
 }
@@ -36,7 +46,7 @@ No return, but simulated reads, a simulation info file,
 Firstly, exon supersets are created by joining all exons of a gene from a gtf/gff file.
 Next, splicing variants are created with documentation and event annotation based on the users input.
 Finally, fastq files containing RNA-seq reads from the splice variants and the real exon and junction coverage 
-are created using a modified version of the polyester R package available on https://github.com/quirinmanz/polyester.
+are created using a modified version of the polyester R package available on https://github.com/biomedbigdata/polyester.
 }
 \details{
 Reads are simulated from a GTF file which is produced by 
@@ -76,7 +86,8 @@ Reads are simulated from a GTF file which is produced by
   We plan on improving this in the future.
   \item \code{strand_specific}: Strand-specific simulation (1st read forward strand,
   2nd read reverse strand with respect to transcript sequence). Default \code{TRUE}.
-  \item \code{meanmodel}: \code{reads_per_transcripts} as a function of transcript length. Default \code{TRUE}.
+  \item \code{meanmodel}: \code{reads_per_transcripts} as a function of transcript length. Always \code{TRUE} in ASimulatoR.
+  \item \code{frag_GC_bias}: A sample-specific GC content bias on the fragment level. Currently not supported in ASimulatoR: always 'none'.
   \item \code{verbose}: Should progress messages be printed during the sequencing process? Default \code{TRUE}.
   \item \code{exon_junction_coverage}: Should the coverage of exons, junctions and retained introns be determined? Default \code{TRUE}.
   \item \code{exon_junction_table}: If \code{exon_junction_coverage=TRUE} a \code{data.table} produced by \code{\link{create_splicing_variants_and_annotation}} 

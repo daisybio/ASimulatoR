@@ -117,6 +117,7 @@ simulate_alternative_splicing(input_dir = input_dir,
 #> found the following fasta files: 21.fa
 #> note that splice variants will only be constructed from chromosomes that have a corresponding fasta file
 #> 
+#> set data.table threads to 1
 #> loading superset...
 #> finished loading superset
 #> 
@@ -191,7 +192,7 @@ a gtf/gff file. Next, splicing variants are created with documentation
 and event annotation based on the users input. Finally, fastq files
 containing RNA-seq reads from the splice variants and the real exon and
 junction coverage are created using a modified version of the polyester
-R package available on <https://github.com/quirinmanz/polyester>.
+R package available on <https://github.com/biomedbigdata/polyester>.
 
 ### Usage
 
@@ -207,6 +208,7 @@ simulate_alternative_splicing(input_dir, event_probs, outdir, ncores = 1L, ...)
 | `event_probs` | Named list/vector containing numerics corresponding to the probabilites to create the event (combination). If `probs_as_freq` is `TRUE` `event_probs` correspond to the relative frequency of occurences for the event(combination) and in this case the sum of all frequencies has to be \<=1. |
 | `outdir`      | character, path to folder where simulated reads and all annotations should be written, with *no* slash at the end. By default, reads are written to current working directory.                                                                                                                  |
 | `ncores`      | the number of cores to be utilized for parallel generation of splice variant creation and read simulation.                                                                                                                                                                                      |
+| `preset`      | if you want to use preset parameters one of ‘event\_partition’, ‘rna\_seq\_experiment’, ‘event\_combination\_2’                                                                                                                                                                                 |
 | `...`         | any of several other arguments that can be used to add nuance to the simulation and splice variant creation. See details.                                                                                                                                                                       |
 
 ### Details
@@ -258,7 +260,10 @@ than in `simulate_experiment`:
     sequence). Default `TRUE` .
 
   - `meanmodel` : `reads_per_transcripts` as a function of transcript
-    length. Default `TRUE` .
+    length. Always `TRUE` in ASimulatoR.
+
+  - `frag_GC_bias`: A sample-specific GC content bias on the fragment
+    level. Currently not supported in ASimulatoR: always ‘none’.
 
   - `verbose` : Should progress messages be printed during the
     sequencing process? Default `TRUE` .
