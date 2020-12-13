@@ -106,10 +106,10 @@
 #'  If \code{probs_as_freq} is \code{TRUE} \code{event_probs} correspond 
 #'  to the relative frequency of occurences for the event (combination) and 
 #'  in this case the sum of all frequencies has to be <=1.
+#' @param preset if you want to use preset parameters one of 
+#' 'event_partition', 'experiment_bias', 'event_combination_2'.
 #' @param ncores the number of cores to be utilized for parallel generation
 #'   of splice variant creation and read simulation.
-#' @param preset if you want to use preset parameters one of 
-#' 'event_partition', 'rna_seq_experiment', 'event_combination_2'.
 #' Check \code{?presets} for more information
 #' @param ... any of several other arguments that can be used to add nuance
 #'   to the simulation and splice variant creation. See details.
@@ -181,8 +181,8 @@ simulate_alternative_splicing <-
   function(input_dir,
            outdir,
            event_probs = NULL,
-           ncores = 1L,
            preset = NULL,
+           ncores = 1L,
            ...)
   {
     # check parameters and compatibility
