@@ -12,7 +12,6 @@ assign_preset <- function(preset, event_probs){
 # # this code was used to assign presets
 # 
 # presets <- list()
-# max_genes = 10000
 # as_events <- c('es', 'mes', 'ir', 'a3', 'a5', 'afe', 'ale', 'mee')
 # event_probs <- rep(1/(length(as_events) + 1), length(as_events))
 # names(event_probs) <- as_events
@@ -23,7 +22,6 @@ assign_preset <- function(preset, event_probs){
 # )
 # presets$experiment_bias <- list(
 #   event_probs = event_probs,
-#   max_genes = max_genes,
 #   error_model = 'illumina5',
 #   pcr_rate = 0.001,
 #   bias = 'cdnaf',
@@ -35,7 +33,6 @@ assign_preset <- function(preset, event_probs){
 # event_probs <- rep(1/(length(as_combs) + 1), length(as_combs))
 # presets$event_combination_2 <- list(
 #   event_probs = event_probs,
-#   max_genes = max_genes,
 #   multi_events_per_exon = T
 # )
 # save(presets, file = 'data/presets.rda')

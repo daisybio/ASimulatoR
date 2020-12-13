@@ -30,6 +30,11 @@ Please note that we use a custom version of Polyester, that is available at http
 
 ## Example
 
+This repository contains a documented example Rscript `runASimulatoR.R`.
+After installation scripts like this can be run from the command-line with the command `Rscript runASimulatoR.R /path/to/input_folder/ /path/to/output_folder/`.
+
+For usage in an interactive R-session and to demonstrate the functionality of this package check the following example:
+
 ### Creating exon supersets
 Firstly, we create exon supersets by joining all exons of a gene from a gtf/gff file. 
 These supersets are then used to create splice variants. 
@@ -97,7 +102,8 @@ simulate_alternative_splicing(input_dir = input_dir,
                               outdir = outdir, 
                               probs_as_freq = probs_as_freq, 
                               max_genes = max_genes,
-                              num_reps = num_reps)
+                              num_reps = num_reps,
+                              verbose = FALSE)
 ```
 
 

@@ -1,4 +1,4 @@
-#Rscript runASimulatoR /path/to/input_folder/ /path/to/output_folder/ seed
+#Rscript runASimulatoR /path/to/input_folder/ /path/to/output_folder/
 
 
 ### set parameters ----
@@ -6,7 +6,7 @@ args = commandArgs(trailingOnly = TRUE)
 
 input = args[1] #path to the input folder. Note: contains the chromosomes fasta file and the genome annotation (in gtf or gff3 format)
 output = args[2] #path to the output folder
-seed = args[3] #seed for a reproducible simulation
+seed = 142 #seed for a reproducible simulation
 ncores = 8 #number of cores for the parallel simulation
 
 multi_events_per_exon = T #T - allow multiple events per exon; F - allow only one event per exon

@@ -21,6 +21,14 @@ at <https://github.com/biomedbigdata/polyester>
 
 ## Example
 
+This repository contains a documented example Rscript `runASimulatoR.R`.
+After installation scripts like this can be run from the command-line
+with the command `Rscript runASimulatoR.R /path/to/input_folder/
+/path/to/output_folder/`.
+
+For usage in an interactive R-session and to demonstrate the
+functionality of this package check the following example:
+
 ### Creating exon supersets
 
 Firstly, we create exon supersets by joining all exons of a gene from a
@@ -113,7 +121,8 @@ simulate_alternative_splicing(input_dir = input_dir,
                               outdir = outdir, 
                               probs_as_freq = probs_as_freq, 
                               max_genes = max_genes,
-                              num_reps = num_reps)
+                              num_reps = num_reps,
+                              verbose = FALSE)
 #> found the following fasta files: 21.fa
 #> note that splice variants will only be constructed from chromosomes that have a corresponding fasta file
 #> 
@@ -134,16 +143,6 @@ simulate_alternative_splicing(input_dir = input_dir,
 #> start simulation with polyester:
 #> parsing gtf and sequences...
 #> done parsing
-#> start sequencing... (1m reads per iteration)
-#> sample_01: overall 91608 reads
-#> sample_01: iteration 01
-#> sample_01: fragments generated
-#> sample_01: write read pairs
-#> sample_02: overall 78660 reads
-#> sample_02: iteration 01
-#> sample_02: fragments generated
-#> sample_02: write read pairs
-#> finished sequencing
 ```
 
 ### Visualize Splice Variants
