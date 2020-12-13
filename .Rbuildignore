@@ -12,3 +12,4 @@
 ^R/dependencies\.R$
 ^README\.md$
 ^renv/\.gitignore$
+^runASimulatoR.R$

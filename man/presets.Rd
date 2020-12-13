@@ -8,10 +8,15 @@
 An object of class \code{list} of length 3.
 }
 \usage{
-data(presets)
+simulate_alternative_splicing('some_input_dir', 'some_output_dir', preset = 'event_partition')
 }
 \description{
-Parameter presets for the \code{\link{simulate_alternative_splicing}} function
+You can pass one of this lists names as parameter \code{preset} to \code{\link{simulate_alternative_splicing}}. 
+This will apply all parameters contained in the corresponding preset.
+The parameters set by preset can also be overridden using the argument explicitly.
+You can check the exact parameters by loading the presets e.g.
+\code{data(presets)}
+\code{presets$event_partition}
 }
 \author{
 Quirin Manz \email{quirin.manz@tum.de}

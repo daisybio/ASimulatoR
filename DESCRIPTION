@@ -1,5 +1,5 @@
 Package: ASimulatoR
-Version: 0.0.0.9000
+Version: 1.0.0
 Date: 2020-01-01
 Title: Alternative Splicing Simulator
 Authors@R: c(person("Quirin", "Manz", role = c("aut", 'cre'),

@@ -30,10 +30,6 @@
     params$exon_junction_coverage <- T
   else
     stopifnot(is.logical(params$exon_junction_coverage))
-  if (is.null(params$error_rate))
-    params$error_rate <- 0
-  else
-    stopifnot(is.numeric(params$error_rate))
   if (is.null(params$strand_specific))
     params$strand_specific <- T
   else
@@ -102,18 +98,19 @@
 #' @param input_dir Character path to directory containing the gtf/gff file 
 #' from which splice variants are created and genome fasta files with 
 #' one file per chromosome i.e. <chr_name>.fa passed to polyester.
+#' @param outdir character, path to folder where simulated reads and all
+#'   annotations should be written, with *no* slash at the end. By default,
+#'   reads are written to current working directory.
 #' @param event_probs Named list/vector containing numerics corresponding
 #'  to the probabilites to create the event(combination). 
 #'  If \code{probs_as_freq} is \code{TRUE} \code{event_probs} correspond 
 #'  to the relative frequency of occurences for the event (combination) and 
 #'  in this case the sum of all frequencies has to be <=1.
-#' @param outdir character, path to folder where simulated reads and all
-#'   annotations should be written, with *no* slash at the end. By default,
-#'   reads are written to current working directory.
 #' @param ncores the number of cores to be utilized for parallel generation
 #'   of splice variant creation and read simulation.
 #' @param preset if you want to use preset parameters one of 
-#' 'event_partition', 'rna_seq_experiment', 'event_combination_2'
+#' 'event_partition', 'rna_seq_experiment', 'event_combination_2'.
+#' Check \code{?presets} for more information
 #' @param ... any of several other arguments that can be used to add nuance
 #'   to the simulation and splice variant creation. See details.
 #'
@@ -182,8 +179,8 @@
 
 simulate_alternative_splicing <-
   function(input_dir,
-           event_probs = NULL,
            outdir,
+           event_probs = NULL,
            ncores = 1L,
            preset = NULL,
            ...)
@@ -281,8 +278,8 @@ simulate_alternative_splicing <-
 # ## debugging ----
 # ## set parameters
 # input = '../ensembl_data/Homo_sapiens.GRCh38.99'
-# output = '../ensembl_data/Homo_sapiens.GRCh38.99_out/rna_seq_experiment'
+# output = '../ensembl_data/Homo_sapiens.GRCh38.99_out/experiment_bias'
 # 
 # ## run simulator
 # # library(ASimulatoR)
-# simulate_alternative_splicing(input_dir = input, outdir = output, preset = 'rna_seq_experiment', max_genes = 100, seq_depth = 2e6)
+# simulate_alternative_splicing(input_dir = input, outdir = output, preset = 'experiment_bias', max_genes = 100, seq_depth = 2e6)

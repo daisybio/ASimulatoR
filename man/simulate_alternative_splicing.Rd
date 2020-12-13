@@ -6,8 +6,8 @@
 \usage{
 simulate_alternative_splicing(
   input_dir,
-  event_probs = NULL,
   outdir,
+  event_probs = NULL,
   ncores = 1L,
   preset = NULL,
   ...
@@ -18,21 +18,22 @@ simulate_alternative_splicing(
 from which splice variants are created and genome fasta files with 
 one file per chromosome i.e. <chr_name>.fa passed to polyester.}
 
+\item{outdir}{character, path to folder where simulated reads and all
+annotations should be written, with *no* slash at the end. By default,
+reads are written to current working directory.}
+
 \item{event_probs}{Named list/vector containing numerics corresponding
 to the probabilites to create the event(combination). 
 If \code{probs_as_freq} is \code{TRUE} \code{event_probs} correspond 
 to the relative frequency of occurences for the event (combination) and 
 in this case the sum of all frequencies has to be <=1.}
 
-\item{outdir}{character, path to folder where simulated reads and all
-annotations should be written, with *no* slash at the end. By default,
-reads are written to current working directory.}
-
 \item{ncores}{the number of cores to be utilized for parallel generation
 of splice variant creation and read simulation.}
 
 \item{preset}{if you want to use preset parameters one of 
-'event_partition', 'rna_seq_experiment', 'event_combination_2'}
+'event_partition', 'rna_seq_experiment', 'event_combination_2'.
+Check \code{?presets} for more information}
 
 \item{...}{any of several other arguments that can be used to add nuance
 to the simulation and splice variant creation. See details.}
