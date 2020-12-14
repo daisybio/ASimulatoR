@@ -29,11 +29,11 @@ to the relative frequency of occurences for the event (combination) and
 in this case the sum of all frequencies has to be <=1.}
 
 \item{preset}{if you want to use preset parameters one of 
-'event_partition', 'experiment_bias', 'event_combination_2'.}
+'event_partition', 'experiment_bias', 'event_combination_2'.
+Check \code{?\link{presets}} for more information}
 
 \item{ncores}{the number of cores to be utilized for parallel generation
-  of splice variant creation and read simulation.
-Check \code{?presets} for more information}
+of splice variant creation and read simulation.}
 
 \item{...}{any of several other arguments that can be used to add nuance
 to the simulation and splice variant creation. See details.}
@@ -55,7 +55,7 @@ Reads are simulated from a GTF file which is produced by
   sequences.
 
   Several optional parameters can be passed to this function to adjust the
-  simulation. For polyester parameters refer to \code{\link{simulate_experiment}}:
+  simulation. For polyester parameters refer to \code{\link{polyester::simulate_experiment}}:
   
   \itemize{
   \item \code{novel_variants}: Numeric value between 0 and 1 indicating the percentage 
@@ -66,6 +66,7 @@ Reads are simulated from a GTF file which is produced by
   \item \code{max_genes}: The maximum number of genes/exon supersets to be included 
   in the process of splice variant creation. 
   Default \code{NULL} which means that all available exon supersets will be used.
+  **This is a computation heavy default and you might want to adjust it!**
   \item \code{exon_junction_coverage}: Should the real coverage of exons, junctions 
   and retained introns be written into a additional file.
   Default \code{TRUE}

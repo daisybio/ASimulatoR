@@ -117,11 +117,45 @@ event_freq =
 # we use the previously created superset to simulate splice variants from, since it is saved in the same directory as the gtf
 # if no superset is found, a new one will be created
 simulate_alternative_splicing(input_dir = input_dir,
-                              event_probs = event_freq,
                               outdir = outdir, 
+                              event_probs = event_freq,
                               probs_as_freq = probs_as_freq, 
                               max_genes = max_genes,
                               num_reps = num_reps,
+                              verbose = FALSE)
+#> found the following fasta files: 21.fa
+#> note that splice variants will only be constructed from chromosomes that have a corresponding fasta file
+#> 
+#> set data.table threads to 1
+#> loading superset...
+#> finished loading superset
+#> 
+#> assign variants to supersets...
+#> create splicing variants and annotation. This may take a while...
+#> finished creating splicing variants and annotation
+#> 
+#> exporting gtf for read simulation...
+#> finished exporting gtf
+#> 
+#> exporting event_annotation...
+#> finished exporting event_annotation...
+#> 
+#> start simulation with polyester:
+#> parsing gtf and sequences...
+#> done parsing
+```
+
+You can also use predefined parameters explained in `?presets`:
+
+``` r
+outdir_preset = 'simulation_preset'
+
+# We will use the preset 'experiment_bias' which includes typical rna-seq biases such as positional bias arising in protocols that use cDNA fragmentation
+# we can still use other arguments such as max_genes to set additional/override existing parameters
+simulate_alternative_splicing(input_dir = input_dir,
+                              outdir = outdir_preset,
+                              preset = 'experiment_bias',
+                              max_genes = max_genes,
                               verbose = FALSE)
 #> found the following fasta files: 21.fa
 #> note that splice variants will only be constructed from chromosomes that have a corresponding fasta file
@@ -216,8 +250,10 @@ Reads are simulated from a GTF file which is produced by
 `create_splicing_variants_and_annotation` plus DNA sequences.
 
 Several optional parameters can be passed to this function to adjust the
-simulation. For polyester parameters refer to `simulate_experiment` from
-the polyester R package:
+simulation. These parameters are passed to `simulate_experiment` from
+our ![custom polyester R
+package](https://github.com/biomedbigdata/polyester). The following
+parameters are specific for the ASimulatoR package:
 
   - `novel_variants` : Numeric value between 0 and 1 indicating the
     percentage of splicing variants that will be suppressed in an
@@ -229,7 +265,8 @@ the polyester R package:
 
   - `max_genes` : The maximum number of genes/exon supersets to be
     included in the process of splice variant creation. Default `NULL`
-    which means that all available exon supersets will be used.
+    which means that all available exon supersets will be used. **This
+    is a computation heavy default and you might want to adjust it\!**
 
   - `exon_junction_coverage` : Should the real coverage of exons,
     junctions and retained introns be written into a additional file.
@@ -247,8 +284,9 @@ the polyester R package:
   - `save_exon_superset` : Should the exon supersets be saved to .rda
     file? Default `TRUE`
 
-Parameters passed to polyester that we assigned different defaults to
-than in `simulate_experiment`:
+These parameters are passed to the polyester function
+`simulate_experiment` and have different defaults assigned in
+ASimulatoR:
 
   - `fold_changes` : Currently, ASimulatoR introduces random isoform
     switches. Those can be retraced in the sim\_tx\_info.txt file

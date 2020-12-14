@@ -14,6 +14,21 @@ simulate_alternative_splicing('some_input_dir', 'some_output_dir', preset = 'eve
 You can pass one of this lists names as parameter \code{preset} to \code{\link{simulate_alternative_splicing}}. 
 This will apply all parameters contained in the corresponding preset.
 The parameters set by preset can also be overridden using the argument explicitly.
+\itemize{
+ \item \code{event_partition}: 
+ partition exon_supersets in 9 equally sized sets where each set has one event and one set has no event
+ \item \code{experiment_bias}: 
+ events as in \code{event_partition}, but with simulation parameters that correspond to typical experiment biases 
+ (illumina sequencing errors, cdna-fragment bias, pcr-bias, adapter-contamination and empirical fragment length distribution)
+ \item \code{event_combination_2}: 
+ This creates all possible event pairs and give them an equal probability.
+ \item \code{manuscript}:
+ Same preset as used for the use-case in the manuscript. 
+ Event probabilities derived from real data.
+ **This is a computation heavy preset!**
+}
+}
+\details{
 You can check the exact parameters by loading the presets e.g.
 \code{data(presets)}
 \code{presets$event_partition}
