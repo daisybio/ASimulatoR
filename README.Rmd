@@ -15,11 +15,19 @@ knitr::opts_chunk$set(
 
 # ASimulatoR
 
-The goal of ASimulatoR is to simulate RNA-seq reads with alternative splicing events. The alternative splicing events are well documented and the true origin of each read is used for exon and juntion coverage via a modified version of the bioconductor polyester package.
+The goal of ASimulatoR is to simulate RNA-seq reads with alternative
+splicing events. The alternative splicing events are well documented and
+the true origin of each read is used for exon and juntion coverage via a
+modified version of the bioconductor polyester package.
+
+Please note that we use a custom version of Polyester, that is available
+at <https://github.com/biomedbigdata/polyester>.
 
 ## Installation
 
-You can install the current version using the [remotes](https://cran.r-project.org/web/packages/remotes/index.html) package:
+You can install the current version using the
+[remotes](https://cran.r-project.org/web/packages/remotes/index.html)
+package:
 
 ``` r
 # install.packages("remotes")
@@ -29,7 +37,8 @@ remotes::install_github("biomedbigdata/ASimulatoR")
 remotes::install_github("biomedbigdata/ASimulatoR@v1.0.0")
 ```
 
-If you want the latest development version, just install from the dev branch:
+If you want the latest development version, just install from the dev
+branch:
 
 ``` r
 remotes::install_github("biomedbigdata/ASimulatoR", ref = "dev")
@@ -37,42 +46,47 @@ remotes::install_github("biomedbigdata/ASimulatoR", ref = "dev")
 
 This will automatically install all imported R packages. 
 
-There may be system requirements that you have to install manually e.g. on Ubuntu/Debian:
+There may be system requirements that you have to install manually
+e.g. on Ubuntu/Debian:
 
 ``` bash
 apt-get install -y libxml2-dev libcurl4-openssl-dev
 ```
 
-If you still encounter problems with package versions you can use the [renv](https://rstudio.github.io/renv/articles/packages.html) package and simply `restore` our [lockfile](renv.lock).
+If you still encounter problems with package versions you can use the
+[renv](https://rstudio.github.io/renv/articles/packages.html) package
+and simply `restore` our [lockfile](renv.lock).
 
-Please note that we use a custom version of Polyester, that is available at https://github.com/biomedbigdata/polyester.
 
-## Example
+## Usage
 
-This repository contains a documented example Rscript [runASimulatoR.R](runASimulatoR.R).
-After installation, scripts like this can be run from the command-line with the command `Rscript runASimulatoR.R /path/to/input_folder/ /path/to/output_folder/`.
+The input directory should contain a gtf/gff3 genome annotation file and one fasta file per chromosome (e.g. derived from the [Ensembl ftp
+server](https://www.ensembl.org/info/data/ftp/index.html)). 
 
-Note: The input directory should contain a gtf/gff file and one genome fasta file per chromosome (e.g. derived from the [Ensembl ftp server](https://www.ensembl.org/info/data/ftp/index.html)). The organism of origin is irrelevant for functionality.
+ASimulatoR accepts any gtf/gff3 genome annotation and chromosome fasta files independent of the organism.
 
-For usage in an interactive R-session and to demonstrate the functionality of this package check the following example:
+### Quick start
 
-### Manuscript Use Case:
+This repository contains a documented example Rscript
+[runASimulatoR.R](runASimulatoR.R). After installation, scripts like
+this can be run from the command-line with the command:
 
-If you would like to reproduce the use case mentioned in the manuscript you can use the corresponding preset:
+`Rscript runASimulatoR.R /path/to/input_folder/ /path/to/output_folder/`.
 
-``` r
-# this preset uses a sequencing depth of 200 million reads
-simulate_alternative_splicing('some_input_dir', 'some_output_dir', preset = 'manuscript_use_case')
+### Step by step
 
-# if you want to adjust the sequencing depth you can easily override it to create a lower coverage
-simulate_alternative_splicing('some_input_dir', 'some_output_dir', preset = 'manuscript_use_case', seq_depth = 5e07)
+For usage in an interactive R-session and to investigate the full
+functionality of this package check the following example. 
+The example is limited to the chromosome 21 for the runtime purpose. 
+For even more flexibility refer to the section ["The main function: `simulate_alternative_splicing`" ](## The main function: `simulate_alternative_splicing`):
 
-```
+#### Creating exon supersets
 
-### Creating exon supersets
-Firstly, we create exon supersets by joining all exons of a gene from a gtf/gff file. 
-These supersets are then used to create splice variants. 
-Since all exons from one gene are used to create the exon superset, you may find that the term exon superset is used analogously to gene.
+Firstly, we create exon supersets by joining all exons of a gene from a
+gtf/gff3 file. These supersets are then used to create splice variants.
+
+Note: Since all exons from one gene are used to create the exon superset, you
+may find that the term exon superset is used analogously to gene.
 
 ```{r createSuperset}
 suppressMessages(library(ASimulatoR))
@@ -85,15 +99,16 @@ exon_superset = get_exon_supersets(gtf_file)
 exon_superset[[1]][1:5, ]
 ```
 
-### Simulating Alternative Splicing
+#### Simulating Alternative Splicing
 
-You can find more information about the main function of this package at the end of the page.
+You can find more information about the main function of this package at
+the [end of the page]((## The main function: `simulate_alternative_splicing`)).
 
-This simulator supports eight different AS events:
+The simulator supports eight different AS events:
 
-| es           | mes                    | ir               | a3                                  |  a5                              | mee                      | afe                    | ale                   |
-|--------------|------------------------|------------------|-------------------------------------|----------------------------------|--------------------------|------------------------|-----------------------|
-| exon skiping | multiple exon skipping | intron retention | alternative 3'/acceptor splice site | alternative 5'/donor splice site | mutually exclusive exons | alternative first exon | alternative last exon |
+| es           | mes                    | ir               | a3                                  | a5                               | mee                      | afe                    | ale                   |
+| ------------ | ---------------------- | ---------------- | ----------------------------------- | -------------------------------- | ------------------------ | ---------------------- | --------------------- |
+| exon skiping | multiple exon skipping | intron retention | alternative 3’/acceptor splice site | alternative 5’/donor splice site | mutually exclusive exons | alternative first exon | alternative last exon |
 
 
 ```{r parameters}
@@ -112,10 +127,13 @@ outdir = 'simulation'
 max_genes = 9
 ```
 
-You could define the distribution of the events by probability or relative frequency. 
+The user could define the distribution of the events by probability or
+relative frequency.
 
-* Probability: For each superset we create an event with the probability mentioned in `event_prob`.
-* Frequency: Set `probs_as_freq = T`. The exon supersets are partitioned corresponding to the `event_prob` parameter.
+  - Probability: For each superset we create an event with the
+    probability mentioned in `event_prob`.
+  - Frequency: Set `probs_as_freq = T`. The exon supersets are
+    partitioned corresponding to the `event_prob` parameter.
 
 
 ```{r simulateAS}
@@ -140,7 +158,7 @@ simulate_alternative_splicing(input_dir = input_dir,
                               verbose = TRUE)
 ```
 
-You can also use predefined parameters explained in `?presets`:
+The user can also use predefined parameters for common scenarios. More information is in `?presets`:
 
 ```{r simulatePreset}
 outdir_preset = 'simulation_preset'
@@ -154,9 +172,7 @@ simulate_alternative_splicing(input_dir = input_dir,
                               verbose = FALSE)
 ```
 
-
-
-### Visualize Splice Variants
+#### Visualize Splice Variants
 
 ```{r visualization, dpi=300, results = "hold"}
 # to visualize the splice variants we will use ggbio
@@ -175,119 +191,153 @@ event_anno = read.csv('simulation/event_annotation.tsv', sep = '\t')
 event_anno[grepl(gene_id, event_anno$template) | grepl(gene_id, event_anno$variant), ]
 ```
 
-
-
-## `simulate_alternative_splicing`: Simulate RNA-seq experiment with splicing variants
+## The main function: `simulate_alternative_splicing`
 
 ### Description
 
-
- Firstly, exon supersets are created by joining all exons of a gene from a gtf/gff file.
- Next, splicing variants are created with documentation and event annotation based on the users input.
- Finally, fastq files containing RNA-seq reads from the splice variants and the real exon and junction coverage
- are created using a modified version of the polyester R package available on https://github.com/biomedbigdata/polyester.
-
+Here we describe in more detail the parameters that can be passed to this function for a better control over the simulation.
 
 ### Usage
 
-Please also have a look at our example script [runASimulatoR.R](runASimulatoR.R) to see how to use ASimulatoR properly.
-
-```r
+``` r
 simulate_alternative_splicing(input_dir, outdir, event_probs, ncores = 1L, ...)
 ```
 
-
 ### Arguments
 
-Argument      |Description
-------------- |----------------
-```input_dir```     |     Character path to directory containing the gtf/gff file from which splice variants are created and genome fasta files with one file per chromosome i.e. <chr_name>.fa passed to polyester
-```outdir```     |     character, path to folder where simulated reads and all annotations should be written, with *no* slash at the end. By default, reads are written to current working directory.
-```event_probs```     |     Named list/vector containing numerics corresponding to the probabilites to create the event (combination). If `probs_as_freq` is `TRUE`  `event_probs` correspond to the relative frequency of occurences for the event(combination) and in this case the sum of all frequencies has to be <=1. No default, must not be `NULL`, except if `preset` is given.
-```preset```     |     if you want to use preset parameters one of 'event_partition', 'experiment_bias', 'event_combination_2'. Check `?presets` for more information
-```ncores```     |     the number of cores to be utilized for parallel generation of splice variant creation and read simulation.
-```...```     |     any of several other arguments that can be used to add nuance to the simulation and splice variant creation. See details.
+| Argument      | Description                                                                                                                                                                                                                                                                                                                                                  |
+| ------------- | ------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------ |
+| `input_dir`   | Character path to directory containing the gtf/gff file from which splice variants are created and genome fasta files with one file per chromosome i.e. <chr_name>.fa passed to polyester                                                                                                                                                                    |
+| `outdir`      | character, path to folder where simulated reads and all annotations should be written, with *no* slash at the end. By default, reads are written to current working directory.                                                                                                                                                                               |
+| `event_probs` | Named list/vector containing numerics corresponding to the probabilites to create the event (combination). If `probs_as_freq` is `TRUE` `event_probs` correspond to the relative frequency of occurences for the event(combination) and in this case the sum of all frequencies has to be \<=1. No default, must not be `NULL`, except if `preset` is given. |
+| `preset`      | if you want to use preset parameters one of ‘event\_partition’, ‘experiment\_bias’, ‘event\_combination\_2’. Check `?presets` for more information                                                                                                                                                                                                           |
+| `ncores`      | the number of cores to be utilized for parallel generation of splice variant creation and read simulation.                                                                                                                                                                                                                                                   |
+| `...`         | any of several other arguments that can be used to add nuance to the simulation and splice variant creation. See section Details.                                                                                                                                                                                                                                    |
 
 ### Details
 
-
- Reads are simulated from a GTF file which is produced by `create_splicing_variants_and_annotation` plus DNA sequences.
- 
- Several optional parameters can be passed to this function to adjust the simulation. These parameters are passed to `simulate_experiment` from our [custom polyester R package](https://github.com/biomedbigdata/polyester). You can find more details in the section about [technical biases](#### Technical Biases)
- 
+Several optional parameters can be defined to adjust the
+simulation. These parameters are further used by the `simulate_experiment` function from
+our [custom polyester R
+package](https://github.com/biomedbigdata/polyester). 
  
  The following parameters are specific for the ASimulatoR package:
  
+  - `novel_variants` : Numeric value between 0 and 1 indicating the
+    percentage of splicing variants that will be suppressed in an
+    additional gtf file splicing\_variants\_novel.gtf.
     
-*   `novel_variants` : Numeric value between 0 and 1 indicating the percentage of splicing variants that will be suppressed in an additional gtf file splicing_variants_novel.gtf.
+  - `write_gff` : Additionally to the gtf file containing the splice
+    variants, a gff3 file with the same content will be printed to the
+    outdir. Default `TRUE`
 
-*   `write_gff` : Additionally to the gtf file containing the splice variants, a gff3 file with the same content will be printed to the outdir. Default `TRUE`   
+  - `max_genes` : The maximum number of genes/exon supersets to be
+    included in the process of splice variant creation. Default `NULL`
+    which means that all available exon supersets will be used. **This
+    is a computation heavy default and you might want to adjust it\!**
 
-*   `max_genes` : The maximum number of genes/exon supersets to be included in the process of splice variant creation. Default `NULL` which means that all available exon supersets will be used. **This is a computation heavy default and you might want to adjust it!**
+  - `exon_junction_coverage` : Should the real coverage of exons,
+    junctions and retained introns be written into a additional file.
+    Default `TRUE`
 
-*   `exon_junction_coverage` : Should the real coverage of exons, junctions and retained introns be written into a additional file. Default `TRUE`   
+  - `multi_events_per_exon` : Should it be possible to have more than
+    one AS event at the same exon if multiple variants are created for
+    the same exon superset? \!If this option is set to `TRUE` , there
+    may occur unforeseen AS events that are not documented in the
+    event\_annotation file\!. Default `FALSE`
 
-*   `multi_events_per_exon` : Should it be possible to have more than one AS event at the same exon if multiple variants are created for the same exon superset? !If this option is set to `TRUE` , there may occur unforeseen AS events that are not documented in the event_annotation file!. Default `FALSE`   
+  - `probs_as_freq` : Should `event_probs` be treated as relative
+    frequencies instead of probabilities? Default `FALSE`
 
-*   `probs_as_freq` : Should `event_probs` be treated as relative frequencies instead of probabilities? Default `FALSE`   
+  - `save_exon_superset` : Should the exon supersets be saved to .rda
+    file? Default `TRUE`
 
-*   `save_exon_superset` : Should the exon supersets be saved to .rda file? Default `TRUE`   
+These parameters are used by the polyester function
+`simulate_experiment` and have different defaults assigned in
+ASimulatoR:
  
- These parameters are passed to the polyester function `simulate_experiment` and have different defaults assigned in ASimulatoR:
+  - `fold_changes` : Currently, ASimulatoR introduces random isoform
+    switches. Those can be retraced in the sim\_tx\_info.txt file
+    written by polyester. We plan on improving this in the future.
 
-*   `fold_changes` : Currently, ASimulatoR introduces random isoform switches. Those can be retraced in the sim_tx_info.txt file written by polyester. We plan on improving this in the future.  
+  - `strand_specific` : Strand-specific simulation (1st read forward
+    strand, 2nd read reverse strand with respect to transcript
+    sequence). Default `TRUE` .
 
-*   `strand_specific` : Strand-specific simulation (1st read forward strand, 2nd read reverse strand with respect to transcript sequence). Default `TRUE` .  
+  - `meanmodel` : `reads_per_transcripts` as a function of transcript
+    length. Always `TRUE` in ASimulatoR.
 
-*   `meanmodel` : `reads_per_transcripts` as a function of transcript length.  Always `TRUE` in ASimulatoR.  
+  - `frag_GC_bias`: A sample-specific GC content bias on the fragment
+    level. Currently not supported in ASimulatoR: always ‘none’.
 
-*   `frag_GC_bias`: A sample-specific GC content bias on the fragment level. Currently not supported in ASimulatoR: always 'none'.
+  - `verbose` : Should progress messages be printed during the
+    sequencing process? Default `TRUE` .
 
-*   `verbose` : Should progress messages be printed during the sequencing process? Default `TRUE` .  
+  - `exon_junction_coverage` : Should the coverage of exons, junctions
+    and retained introns be determined? Default `TRUE` .
 
-*   `exon_junction_coverage` : Should the coverage of exons, junctions and retained introns be determined? Default `TRUE` .  
+  - `exon_junction_table` : If `exon_junction_coverage=TRUE` a
+    `data.table` produced by `create_splicing_variants_and_annotation`
+    to determine exon and intron coverage.
 
-*   `exon_junction_table` : If `exon_junction_coverage=TRUE` a `data.table` produced by `create_splicing_variants_and_annotation`  to determine exon and intron coverage.  
+These parameters are used by the `simulate_experiment` from the polyester
+R package to introduce technical biases.
 
-#### Technical Biases
+  - `pcr_rate`: Fraction of fragments that will be duplicated. Reads
+    from these fragments will have PCR\_DUP in the name.
+  - `pcr_lambda`: If `!is.null(pcr_rate)` lambda for the poisson
+    distribution to draw the number of duplicates.
+  - `adapter_contamination`: If the fragment is smaller than the
+    readlength, should we sequence into the `adapter_sequence`?
+  - `adapter_sequence`: If `adapter_contamination`: adapter sequence
+  - `bias`: Positional bias model to use when fragmenting transcripts.
+    By default, all fragments from a transcript are equally likely
+    (`'none'`). Other choices are `'rnaf'` and `'cdnaf'`, which mimic
+    positional bias arising from different fragmentation protocols. See
+    `?generate_fragments` and the polyester manuscript (Frazee et al,
+    2014) for details.
 
-These parameters are passed to `simulate_experiment` from the polyester R package. Try `?simulate_experiment` to check all available parameters.
+Note:  The user can further adjust the RNA-Seq reads simulation. Try `?simulate_experiment` to check all available parameters.
 
-* `pcr_rate`: Fraction of fragments that will be duplicated. Reads from these fragments will have PCR_DUP in the name.
-* `pcr_lambda`: If `!is.null(pcr_rate)` lambda for the poisson distribution to draw the number of duplicates.
-* `adapter_contamination`: If the fragment is smaller than the readlength, should we sequence into the `adapter_sequence`?
-* `adapter_sequence`: If `adapter_contamination`: adapter sequence
-* `bias`: Positional bias model to use when fragmenting transcripts. By default, all fragments from a transcript are equally likely (`'none'`). Other choices are `'rnaf'` and `'cdnaf'`, which mimic positional bias arising from different fragmentation protocols. See `?generate_fragments` and the polyester manuscript (Frazee et al, 2014) for details.
+## Manuscript Use Case:
 
+If you would like to reproduce the use case mentioned in the manuscript
+you can use the corresponding preset:
 
-### Value
+``` r
+# this preset uses a sequencing depth of 200 million reads
+simulate_alternative_splicing('some_input_dir', 'some_output_dir', preset = 'manuscript')
 
+# if you want to adjust the sequencing depth you can easily override it to create a lower coverage
+simulate_alternative_splicing('some_input_dir', 'some_output_dir', preset = 'manuscript', seq_depth = 5e07)
+```
 
- No return, but simulated reads, a simulation info file, an alternative splicing event annotation and exon and junction coverages are written to `outdir` .
+## Value
 
+No return, but simulated reads, a simulation info file, an alternative
+splicing event annotation and exon and junction coverages are written to
+`outdir` .
 
-### References
-
+## References
 
  Alyssa C. Frazee, Andrew E. Jaffe, Ben Langmead, Jeffrey T. Leek,
- Polyester: simulating RNA-seq datasets with differential transcript expression,
- Bioinformatics, Volume 31, Issue 17, 1 September 2015, Pages 2778–2784,
- https://doi.org/10.1093/bioinformatics/btv272
+Polyester: simulating RNA-seq datasets with differential transcript
+expression, Bioinformatics, Volume 31, Issue 17, 1 September 2015, Pages
+2778–2784, <https://doi.org/10.1093/bioinformatics/btv272>
 
-### License
+## License
 
+ASimulatoR Copyright (C) 2020 Manz, Quirin
 
-ASimulatoR Copyright (C) 2020  Manz, Quirin
+This program is free software: you can redistribute it and/or modify it
+under the terms of the GNU General Public License as published by the
+Free Software Foundation, either version 3 of the License, or (at your
+option) any later version.
 
-This program is free software: you can redistribute it and/or modify
-it under the terms of the GNU General Public License as published by
-the Free Software Foundation, either version 3 of the License, or
-(at your option) any later version.
+This program is distributed in the hope that it will be useful, but
+WITHOUT ANY WARRANTY; without even the implied warranty of
+MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE. See the GNU General
+Public License for more details.
 
-This program is distributed in the hope that it will be useful,
-but WITHOUT ANY WARRANTY; without even the implied warranty of
-MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
-GNU General Public License for more details.
-
-You should have received a copy of the GNU General Public License
-along with this program.  If not, see <https://www.gnu.org/licenses/>.
+You should have received a copy of the GNU General Public License along
+with this program. If not, see <https://www.gnu.org/licenses/>.
