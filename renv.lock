@@ -473,10 +473,10 @@
     },
     "matrixStats": {
       "Package": "matrixStats",
-      "Version": "0.56.0",
+      "Version": "0.57.0",
       "Source": "Repository",
       "Repository": "CRAN",
-      "Hash": "d16f18aeb023d7a80c090d9458fc75a6"
+      "Hash": "7249fc52d19eab5af7a02925ab534d9c"
     },
     "memoise": {
       "Package": "memoise",
@@ -544,8 +544,8 @@
       "RemoteRepo": "polyester",
       "RemoteUsername": "biomedbigdata",
       "RemoteRef": "master",
-      "RemoteSha": "02a4d33ae8e719b6529d4a236f446e441b383d90",
-      "Hash": "c6fd9dce22a80e67ce1fe35824264733"
+      "RemoteSha": "9654787a5c01930c0c4302cd4d8080b1c518c4c3",
+      "Hash": "04714e311f4482a2292fe01ac0f1515a"
     },
     "praise": {
       "Package": "praise",

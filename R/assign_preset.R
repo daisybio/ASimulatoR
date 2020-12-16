@@ -10,16 +10,16 @@ assign_preset <- function(preset, event_probs){
 }
 
 # # this code was used to assign presets
-#
+# 
 # presets <- list()
 # as_events <- c('es', 'mes', 'ir', 'a3', 'a5', 'afe', 'ale', 'mee')
 # event_probs <- rep(1/(length(as_events) + 1), length(as_events))
 # names(event_probs) <- as_events
 # presets$event_partition <- list(
 #   event_probs = event_probs,
-#   max_genes = max_genes,
 #   probs_as_freq = T
 # )
+# 
 # presets$experiment_bias <- list(
 #   event_probs = event_probs,
 #   error_model = 'illumina5',
@@ -29,13 +29,15 @@ assign_preset <- function(preset, event_probs){
 #   adapter_contamination = T,
 #   probs_as_freq = T
 # )
+# 
 # as_combs <- combn(as_events, 2, FUN = function(...) paste(..., collapse = ','))
 # event_probs <- rep(1/(length(as_combs) + 1), length(as_combs))
 # presets$event_combination_2 <- list(
 #   event_probs = event_probs,
 #   multi_events_per_exon = T
 # )
-# presets$manuscript <- list(
+# 
+# presets$manuscript_use_case <- list(
 #   event_probs = c('a5' = 0.060, 'a3' = 0.078, 'es' = 0.098, 'ir' = 0.049, 'mes' = 0.022, 'mee' = 0.004),
 #   multi_events_per_exon = T,
 #   error_rate = 0.001,
@@ -59,14 +61,14 @@ assign_preset <- function(preset, event_probs){
 #'  (illumina sequencing errors, cdna-fragment bias, pcr-bias, adapter-contamination and empirical fragment length distribution)
 #'  \item \code{event_combination_2}: 
 #'  This creates all possible event pairs and give them an equal probability.
-#'  \item \code{manuscript}:
+#'  \item \code{manuscript_use_case}:
 #'  Same preset as used for the use-case in the manuscript. 
-#'  Event probabilities derived from real data.
+#'  Event probabilities derived from real data.*
 #'  **This is a computation heavy preset!**
 #' }
 #' 
 #' You can check the exact parameters by loading the presets e.g.
-#' \code{data(presets)}
+#' \code{data(presets)};
 #' \code{presets$event_partition}
 #'
 #' @name presets

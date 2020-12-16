@@ -19,21 +19,55 @@ The goal of ASimulatoR is to simulate RNA-seq reads with alternative splicing ev
 
 ## Installation
 
-You can install the development version from [GitHub](https://github.com/) with:
+You can install the current version using the [remotes](https://cran.r-project.org/web/packages/remotes/index.html) package:
 
 ``` r
 # install.packages("remotes")
 remotes::install_github("biomedbigdata/ASimulatoR")
+
+# for a specific release e.g. v1.0.0 use
+remotes::install_github("biomedbigdata/ASimulatoR@v1.0.0")
 ```
 
-Please note that we use a custom version of Polyester, that is available at https://github.com/biomedbigdata/polyester
+If you want the latest development version, just install from the dev branch:
+
+``` r
+remotes::install_github("biomedbigdata/ASimulatoR", ref = "dev")
+```
+
+This will automatically install all imported R packages. 
+
+There may be system requirements that you have to install manually e.g. on Ubuntu/Debian:
+
+``` bash
+apt-get install -y libxml2-dev libcurl4-openssl-dev
+```
+
+If you still encounter problems with package versions you can use the [renv](https://rstudio.github.io/renv/articles/packages.html) package and simply `restore` our [lockfile](renv.lock).
+
+Please note that we use a custom version of Polyester, that is available at https://github.com/biomedbigdata/polyester.
 
 ## Example
 
-This repository contains a documented example Rscript `runASimulatoR.R`.
-After installation scripts like this can be run from the command-line with the command `Rscript runASimulatoR.R /path/to/input_folder/ /path/to/output_folder/`.
+This repository contains a documented example Rscript [runASimulatoR.R](runASimulatoR.R).
+After installation, scripts like this can be run from the command-line with the command `Rscript runASimulatoR.R /path/to/input_folder/ /path/to/output_folder/`.
+
+Note: The input directory should contain a gtf/gff file and one genome fasta file per chromosome (e.g. derived from the [Ensembl ftp server](https://www.ensembl.org/info/data/ftp/index.html)). The organism of origin is irrelevant for functionality.
 
 For usage in an interactive R-session and to demonstrate the functionality of this package check the following example:
+
+### Manuscript Use Case:
+
+If you would like to reproduce the use case mentioned in the manuscript you can use the corresponding preset:
+
+``` r
+# this preset uses a sequencing depth of 200 million reads
+simulate_alternative_splicing('some_input_dir', 'some_output_dir', preset = 'manuscript_use_case')
+
+# if you want to adjust the sequencing depth you can easily override it to create a lower coverage
+simulate_alternative_splicing('some_input_dir', 'some_output_dir', preset = 'manuscript_use_case', seq_depth = 5e07)
+
+```
 
 ### Creating exon supersets
 Firstly, we create exon supersets by joining all exons of a gene from a gtf/gff file. 
@@ -63,7 +97,7 @@ This simulator supports eight different AS events:
 
 
 ```{r parameters}
-# define your input_dir, where the annotation gtf (or the exon supersets if you have already created them) and the genome fasta files are located
+# define your input_dir, where the annotation gtf (or the exon supersets if you have already created them) and the genome fasta files (one per chromosome) are located
 # here we will use the example data
 input_dir = system.file('extdata', package = 'ASimulatoR')
 
@@ -103,7 +137,7 @@ simulate_alternative_splicing(input_dir = input_dir,
                               probs_as_freq = probs_as_freq, 
                               max_genes = max_genes,
                               num_reps = num_reps,
-                              verbose = FALSE)
+                              verbose = TRUE)
 ```
 
 You can also use predefined parameters explained in `?presets`:
@@ -156,8 +190,10 @@ event_anno[grepl(gene_id, event_anno$template) | grepl(gene_id, event_anno$varia
 
 ### Usage
 
+Please also have a look at our example script [runASimulatoR.R](runASimulatoR.R) to see how to use ASimulatoR properly.
+
 ```r
-simulate_alternative_splicing(input_dir, event_probs, outdir, ncores = 1L, ...)
+simulate_alternative_splicing(input_dir, outdir, event_probs, ncores = 1L, ...)
 ```
 
 
@@ -167,7 +203,7 @@ Argument      |Description
 ------------- |----------------
 ```input_dir```     |     Character path to directory containing the gtf/gff file from which splice variants are created and genome fasta files with one file per chromosome i.e. <chr_name>.fa passed to polyester
 ```outdir```     |     character, path to folder where simulated reads and all annotations should be written, with *no* slash at the end. By default, reads are written to current working directory.
-```event_probs```     |     Named list/vector containing numerics corresponding to the probabilites to create the event (combination). If `probs_as_freq` is `TRUE`  `event_probs` correspond to the relative frequency of occurences for the event(combination) and in this case the sum of all frequencies has to be <=1.
+```event_probs```     |     Named list/vector containing numerics corresponding to the probabilites to create the event (combination). If `probs_as_freq` is `TRUE`  `event_probs` correspond to the relative frequency of occurences for the event(combination) and in this case the sum of all frequencies has to be <=1. No default, must not be `NULL`, except if `preset` is given.
 ```preset```     |     if you want to use preset parameters one of 'event_partition', 'experiment_bias', 'event_combination_2'. Check `?presets` for more information
 ```ncores```     |     the number of cores to be utilized for parallel generation of splice variant creation and read simulation.
 ```...```     |     any of several other arguments that can be used to add nuance to the simulation and splice variant creation. See details.
@@ -177,7 +213,9 @@ Argument      |Description
 
  Reads are simulated from a GTF file which is produced by `create_splicing_variants_and_annotation` plus DNA sequences.
  
- Several optional parameters can be passed to this function to adjust the simulation. These parameters are passed to `simulate_experiment` from our ![custom polyester R package](https://github.com/biomedbigdata/polyester).
+ Several optional parameters can be passed to this function to adjust the simulation. These parameters are passed to `simulate_experiment` from our [custom polyester R package](https://github.com/biomedbigdata/polyester). You can find more details in the section about [technical biases](#### Technical Biases)
+ 
+ 
  The following parameters are specific for the ASimulatoR package:
  
     
@@ -210,6 +248,16 @@ Argument      |Description
 *   `exon_junction_coverage` : Should the coverage of exons, junctions and retained introns be determined? Default `TRUE` .  
 
 *   `exon_junction_table` : If `exon_junction_coverage=TRUE` a `data.table` produced by `create_splicing_variants_and_annotation`  to determine exon and intron coverage.  
+
+#### Technical Biases
+
+These parameters are passed to `simulate_experiment` from the polyester R package. Try `?simulate_experiment` to check all available parameters.
+
+* `pcr_rate`: Fraction of fragments that will be duplicated. Reads from these fragments will have PCR_DUP in the name.
+* `pcr_lambda`: If `!is.null(pcr_rate)` lambda for the poisson distribution to draw the number of duplicates.
+* `adapter_contamination`: If the fragment is smaller than the readlength, should we sequence into the `adapter_sequence`?
+* `adapter_sequence`: If `adapter_contamination`: adapter sequence
+* `bias`: Positional bias model to use when fragmenting transcripts. By default, all fragments from a transcript are equally likely (`'none'`). Other choices are `'rnaf'` and `'cdnaf'`, which mimic positional bias arising from different fragmentation protocols. See `?generate_fragments` and the polyester manuscript (Frazee et al, 2014) for details.
 
 
 ### Value

@@ -15,7 +15,7 @@ probs_as_freq = F #T - use fixed frequencies (should be summed up to 1); F - use
 error_rate = 0.001 #sequencing error rate. 0.001 = 0.1%
 readlen = 76 #read length
 max_genes = NULL #number of genes. NULL - use all compatible exon supersets
-seq_depth = 2e08 #sequencing depth
+seq_depth = 2e06 #sequencing depth i.e. the number of reads per sample
 num_reps = c(1,0) #number of samples and groups. E.g., c(1,1) - two groups with 1 sample each 
 
 #distribution of events. One event per gene; equal distribution

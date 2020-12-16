@@ -8,26 +8,68 @@ modified version of the bioconductor polyester package.
 
 ## Installation
 
-You can install the development version from
-[GitHub](https://github.com/) with:
+You can install the current version using the
+[remotes](https://cran.r-project.org/web/packages/remotes/index.html)
+package:
 
 ``` r
 # install.packages("remotes")
 remotes::install_github("biomedbigdata/ASimulatoR")
+
+# for a specific release e.g. v1.0.0 use
+remotes::install_github("biomedbigdata/ASimulatoR@v1.0.0")
 ```
 
+If you want the latest development version, just install from the dev
+branch:
+
+``` r
+remotes::install_github("biomedbigdata/ASimulatoR", ref = "dev")
+```
+
+This will automatically install all imported R packages.
+
+There may be system requirements that you have to install manually
+e.g. on Ubuntu/Debian:
+
+``` bash
+apt-get install -y libxml2-dev libcurl4-openssl-dev
+```
+
+If you still encounter problems with package versions you can use the
+[renv](https://rstudio.github.io/renv/articles/packages.html) package
+and simply `restore` our [lockfile](renv.lock).
+
 Please note that we use a custom version of Polyester, that is available
-at <https://github.com/biomedbigdata/polyester>
+at <https://github.com/biomedbigdata/polyester>.
 
 ## Example
 
-This repository contains a documented example Rscript `runASimulatoR.R`.
-After installation scripts like this can be run from the command-line
-with the command `Rscript runASimulatoR.R /path/to/input_folder/
-/path/to/output_folder/`.
+This repository contains a documented example Rscript
+[runASimulatoR.R](runASimulatoR.R). After installation, scripts like
+this can be run from the command-line with the command `Rscript
+runASimulatoR.R /path/to/input_folder/ /path/to/output_folder/`.
+
+Note: The input directory should contain a gtf/gff file and one genome
+fasta file per chromosome (e.g. derived from the [Ensembl ftp
+server](https://www.ensembl.org/info/data/ftp/index.html)). The organism
+of origin is irrelevant for functionality.
 
 For usage in an interactive R-session and to demonstrate the
 functionality of this package check the following example:
+
+### Manuscript Use Case:
+
+If you would like to reproduce the use case mentioned in the manuscript
+you can use the corresponding preset:
+
+``` r
+# this preset uses a sequencing depth of 200 million reads
+simulate_alternative_splicing('some_input_dir', 'some_output_dir', preset = 'manuscript_use_case')
+
+# if you want to adjust the sequencing depth you can easily override it to create a lower coverage
+simulate_alternative_splicing('some_input_dir', 'some_output_dir', preset = 'manuscript_use_case', seq_depth = 5e07)
+```
 
 ### Creating exon supersets
 
@@ -78,7 +120,7 @@ This simulator supports eight different AS events:
 | exon skiping | multiple exon skipping | intron retention | alternative 3’/acceptor splice site | alternative 5’/donor splice site | mutually exclusive exons | alternative first exon | alternative last exon |
 
 ``` r
-# define your input_dir, where the annotation gtf (or the exon supersets if you have already created them) and the genome fasta files are located
+# define your input_dir, where the annotation gtf (or the exon supersets if you have already created them) and the genome fasta files (one per chromosome) are located
 # here we will use the example data
 input_dir = system.file('extdata', package = 'ASimulatoR')
 
@@ -122,7 +164,7 @@ simulate_alternative_splicing(input_dir = input_dir,
                               probs_as_freq = probs_as_freq, 
                               max_genes = max_genes,
                               num_reps = num_reps,
-                              verbose = FALSE)
+                              verbose = TRUE)
 #> found the following fasta files: 21.fa
 #> note that splice variants will only be constructed from chromosomes that have a corresponding fasta file
 #> 
@@ -143,6 +185,16 @@ simulate_alternative_splicing(input_dir = input_dir,
 #> start simulation with polyester:
 #> parsing gtf and sequences...
 #> done parsing
+#> start sequencing... (1m reads per iteration)
+#> sample_01: overall 91608 reads
+#> sample_01: iteration 01
+#> sample_01: fragments generated
+#> sample_01: write read pairs
+#> sample_02: overall 78660 reads
+#> sample_02: iteration 01
+#> sample_02: fragments generated
+#> sample_02: write read pairs
+#> finished sequencing
 ```
 
 You can also use predefined parameters explained in `?presets`:
@@ -229,20 +281,24 @@ R package available on <https://github.com/biomedbigdata/polyester>.
 
 ### Usage
 
+Please also have a look at our example script
+[runASimulatoR.R](runASimulatoR.R) to see how to use ASimulatoR
+properly.
+
 ``` r
-simulate_alternative_splicing(input_dir, event_probs, outdir, ncores = 1L, ...)
+simulate_alternative_splicing(input_dir, outdir, event_probs, ncores = 1L, ...)
 ```
 
 ### Arguments
 
-| Argument      | Description                                                                                                                                                                                                                                                                                     |
-| ------------- | ----------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
-| `input_dir`   | Character path to directory containing the gtf/gff file from which splice variants are created and genome fasta files with one file per chromosome i.e. <chr_name>.fa passed to polyester                                                                                                       |
-| `outdir`      | character, path to folder where simulated reads and all annotations should be written, with *no* slash at the end. By default, reads are written to current working directory.                                                                                                                  |
-| `event_probs` | Named list/vector containing numerics corresponding to the probabilites to create the event (combination). If `probs_as_freq` is `TRUE` `event_probs` correspond to the relative frequency of occurences for the event(combination) and in this case the sum of all frequencies has to be \<=1. |
-| `preset`      | if you want to use preset parameters one of ‘event\_partition’, ‘experiment\_bias’, ‘event\_combination\_2’. Check `?presets` for more information                                                                                                                                              |
-| `ncores`      | the number of cores to be utilized for parallel generation of splice variant creation and read simulation.                                                                                                                                                                                      |
-| `...`         | any of several other arguments that can be used to add nuance to the simulation and splice variant creation. See details.                                                                                                                                                                       |
+| Argument      | Description                                                                                                                                                                                                                                                                                                                                                  |
+| ------------- | ------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------ |
+| `input_dir`   | Character path to directory containing the gtf/gff file from which splice variants are created and genome fasta files with one file per chromosome i.e. <chr_name>.fa passed to polyester                                                                                                                                                                    |
+| `outdir`      | character, path to folder where simulated reads and all annotations should be written, with *no* slash at the end. By default, reads are written to current working directory.                                                                                                                                                                               |
+| `event_probs` | Named list/vector containing numerics corresponding to the probabilites to create the event (combination). If `probs_as_freq` is `TRUE` `event_probs` correspond to the relative frequency of occurences for the event(combination) and in this case the sum of all frequencies has to be \<=1. No default, must not be `NULL`, except if `preset` is given. |
+| `preset`      | if you want to use preset parameters one of ‘event\_partition’, ‘experiment\_bias’, ‘event\_combination\_2’. Check `?presets` for more information                                                                                                                                                                                                           |
+| `ncores`      | the number of cores to be utilized for parallel generation of splice variant creation and read simulation.                                                                                                                                                                                                                                                   |
+| `...`         | any of several other arguments that can be used to add nuance to the simulation and splice variant creation. See details.                                                                                                                                                                                                                                    |
 
 ### Details
 
@@ -251,9 +307,12 @@ Reads are simulated from a GTF file which is produced by
 
 Several optional parameters can be passed to this function to adjust the
 simulation. These parameters are passed to `simulate_experiment` from
-our ![custom polyester R
-package](https://github.com/biomedbigdata/polyester). The following
-parameters are specific for the ASimulatoR package:
+our [custom polyester R
+package](https://github.com/biomedbigdata/polyester). You can find more
+details in the section about [technical
+biases](####%20Technical%20Biases)
+
+The following parameters are specific for the ASimulatoR package:
 
   - `novel_variants` : Numeric value between 0 and 1 indicating the
     percentage of splicing variants that will be suppressed in an
@@ -311,6 +370,25 @@ ASimulatoR:
   - `exon_junction_table` : If `exon_junction_coverage=TRUE` a
     `data.table` produced by `create_splicing_variants_and_annotation`
     to determine exon and intron coverage.
+
+#### Technical Biases
+
+These parameters are passed to `simulate_experiment` from the polyester
+R package. Try `?simulate_experiment` to check all available parameters.
+
+  - `pcr_rate`: Fraction of fragments that will be duplicated. Reads
+    from these fragments will have PCR\_DUP in the name.
+  - `pcr_lambda`: If `!is.null(pcr_rate)` lambda for the poisson
+    distribution to draw the number of duplicates.
+  - `adapter_contamination`: If the fragment is smaller than the
+    readlength, should we sequence into the `adapter_sequence`?
+  - `adapter_sequence`: If `adapter_contamination`: adapter sequence
+  - `bias`: Positional bias model to use when fragmenting transcripts.
+    By default, all fragments from a transcript are equally likely
+    (`'none'`). Other choices are `'rnaf'` and `'cdnaf'`, which mimic
+    positional bias arising from different fragmentation protocols. See
+    `?generate_fragments` and the polyester manuscript (Frazee et al,
+    2014) for details.
 
 ### Value
 

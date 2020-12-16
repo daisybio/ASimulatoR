@@ -5,7 +5,7 @@
 \alias{presets}
 \title{Parameter presets for the \code{\link{simulate_alternative_splicing}} function}
 \format{
-An object of class \code{list} of length 3.
+An object of class \code{list} of length 4.
 }
 \usage{
 simulate_alternative_splicing('some_input_dir', 'some_output_dir', preset = 'event_partition')
@@ -22,15 +22,15 @@ The parameters set by preset can also be overridden using the argument explicitl
  (illumina sequencing errors, cdna-fragment bias, pcr-bias, adapter-contamination and empirical fragment length distribution)
  \item \code{event_combination_2}: 
  This creates all possible event pairs and give them an equal probability.
- \item \code{manuscript}:
+ \item \code{manuscript_use_case}:
  Same preset as used for the use-case in the manuscript. 
- Event probabilities derived from real data.
+ Event probabilities derived from real data.*
  **This is a computation heavy preset!**
 }
 }
 \details{
 You can check the exact parameters by loading the presets e.g.
-\code{data(presets)}
+\code{data(presets)};
 \code{presets$event_partition}
 }
 \author{
