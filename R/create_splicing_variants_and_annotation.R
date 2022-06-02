@@ -119,9 +119,10 @@ create_splicing_variants_and_annotation <-
     
     ### assign splicing variants with as events to supersets ----
     message('assign variants to supersets...')
-    
     gene_lengths <- sapply(exon_supersets, length)
-    total_gene_lengths <- cumsum(rev(table(gene_lengths)))
+    
+    # add other lengths as zero counts for later when we check if we have enpugh genes
+    total_gene_lengths <- cumsum(rev(table(factor(gene_lengths, levels = 1:max(gene_lengths)))))
     nr_genes <- min(sum(gene_lengths > 1), max_genes)
     too_few_supersets <- T
     while (too_few_supersets){
