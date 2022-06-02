@@ -12,6 +12,12 @@
 #' @importFrom pbmcapply pbmclapply
 get_exon_supersets <-
   function(gtf_path, ncores=1L, save=TRUE) {
+    stopifnot(is.integer(cores))
+    available_cores <- parallel::detectCores()
+    if (ncores > available_cores) {
+      ncores <- available_cores
+      warning(sprintf('%d cores available, but %d requested; set ncores to %d', available_cores, ncores, available_cores))
+    }
     exon_supersets_path <- sprintf('%s.exon_superset.rda', gtf_path)
     if (file.exists(exon_supersets_path)) {
       message('loading superset...')

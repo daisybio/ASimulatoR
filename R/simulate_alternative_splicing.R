@@ -68,6 +68,15 @@
   if (!is.null(params$novel_variants)){
     stopifnot(params$novel_variants >= 0 && params$novel_variants <= 1)
   }
+  if (!is.null(params$ncores)) {
+    params$ncores <- as.integer(params$ncores)
+    stopifnot(is.integer(params$ncores))
+    available_cores <- parallel::detectCores()
+    if (params$ncores > available_cores) {
+      params$ncores <- available_cores
+      warning(sprintf('%d cores available, but %d requested; set ncores to %d', available_cores, params$ncores, available_cores))
+    }
+  }
 
   return(params)
 }
