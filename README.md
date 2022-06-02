@@ -58,8 +58,7 @@ This repository contains a documented example Rscript
 [runASimulatoR.R](runASimulatoR.R). After installation, scripts like
 this can be run from the command-line with the command:
 
-`Rscript runASimulatoR.R /path/to/input_folder/
-/path/to/output_folder/`.
+`Rscript runASimulatoR.R /path/to/input_folder/ /path/to/output_folder/`.
 
 ### Step by step
 
@@ -112,12 +111,12 @@ exon_superset[[1]][1:5, ]
 
 You can find more information about the main function of this package at
 the [end of the
-page](\(##%20The%20main%20function:%20%60simulate_alternative_splicing%60\)).
+page]((##%20The%20main%20function:%20%60simulate_alternative_splicing%60)).
 
 The simulator supports eight different AS events:
 
 | es           | mes                    | ir               | a3                                  | a5                               | mee                      | afe                    | ale                   |
-| ------------ | ---------------------- | ---------------- | ----------------------------------- | -------------------------------- | ------------------------ | ---------------------- | --------------------- |
+|--------------|------------------------|------------------|-------------------------------------|----------------------------------|--------------------------|------------------------|-----------------------|
 | exon skiping | multiple exon skipping | intron retention | alternative 3’/acceptor splice site | alternative 5’/donor splice site | mutually exclusive exons | alternative first exon | alternative last exon |
 
 ``` r
@@ -139,12 +138,10 @@ max_genes = 9
 The user could define the distribution of the events by probability or
 relative frequency.
 
-  - Probability: For each superset we create an event with the
+-   Probability: For each superset we create an event with the
     probability mentioned in `event_prob`.
-  - Frequency: Set `probs_as_freq = T`. The exon supersets are
+-   Frequency: Set `probs_as_freq = T`. The exon supersets are
     partitioned corresponding to the `event_prob` parameter.
-
-<!-- end list -->
 
 ``` r
 # in this example we use relative frequencies
@@ -238,6 +235,7 @@ simulate_alternative_splicing(input_dir = input_dir,
 ``` r
 # to visualize the splice variants we will use ggbio
 suppressMessages(library(ggbio))
+#> Warning: replacing previous import 'lifecycle::last_warnings' by 'rlang::last_warnings' when loading 'tibble'
 
 # firstly, we load the newly created gtf file 
 gtf = rtracklayer::import('simulation/splicing_variants.gtf')
@@ -252,7 +250,6 @@ suppressWarnings(ggbio::autoplot(split(exons, exons$transcript_id)))
 <img src="man/figures/README-visualization-1.png" width="100%" />
 
 ``` r
-
 # have a look at the event annotation
 event_anno = read.csv('simulation/event_annotation.tsv', sep = '\t')
 event_anno[grepl(gene_id, event_anno$template) | grepl(gene_id, event_anno$variant), ]
@@ -285,14 +282,14 @@ simulate_alternative_splicing(input_dir, outdir, event_probs, ncores = 1L, ...)
 
 ### Arguments
 
-| Argument      | Description                                                                                                                                                                                                                                                                                                                                                  |
-| ------------- | ------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------ |
-| `input_dir`   | Character path to directory containing the gtf/gff file from which splice variants are created and genome fasta files with one file per chromosome i.e. <chr_name>.fa passed to polyester                                                                                                                                                                    |
-| `outdir`      | character, path to folder where simulated reads and all annotations should be written, with *no* slash at the end. By default, reads are written to current working directory.                                                                                                                                                                               |
-| `event_probs` | Named list/vector containing numerics corresponding to the probabilites to create the event (combination). If `probs_as_freq` is `TRUE` `event_probs` correspond to the relative frequency of occurences for the event(combination) and in this case the sum of all frequencies has to be \<=1. No default, must not be `NULL`, except if `preset` is given. |
-| `preset`      | if you want to use preset parameters one of ‘event\_partition’, ‘experiment\_bias’, ‘event\_combination\_2’. Check `?presets` for more information                                                                                                                                                                                                           |
-| `ncores`      | the number of cores to be utilized for parallel generation of splice variant creation and read simulation.                                                                                                                                                                                                                                                   |
-| `...`         | any of several other arguments that can be used to add nuance to the simulation and splice variant creation. See section Details.                                                                                                                                                                                                                            |
+| Argument      | Description                                                                                                                                                                                                                                                                                                                                                    |
+|---------------|----------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------|
+| `input_dir`   | Character path to directory containing the gtf/gff file from which splice variants are created and genome fasta files with one file per chromosome i.e. <chr_name>.fa passed to polyester                                                                                                                                                                      |
+| `outdir`      | character, path to folder where simulated reads and all annotations should be written, with *no* slash at the end. By default, reads are written to current working directory.                                                                                                                                                                                 |
+| `event_probs` | Named list/vector containing numerics corresponding to the probabilites to create the event (combination). If `probs_as_freq` is `TRUE` `event_probs` correspond to the relative frequency of occurences for the event(combination) and in this case the sum of all frequencies has to be &lt;=1. No default, must not be `NULL`, except if `preset` is given. |
+| `preset`      | if you want to use preset parameters one of ‘event\_partition’, ‘experiment\_bias’, ‘event\_combination\_2’. Check `?presets` for more information                                                                                                                                                                                                             |
+| `ncores`      | the number of cores to be utilized for parallel generation of splice variant creation and read simulation. **This will spawn one process per core! Be aware that a lot of memory might be required for many processes.**                                                                                                                                       |
+| `...`         | any of several other arguments that can be used to add nuance to the simulation and splice variant creation. See section Details.                                                                                                                                                                                                                              |
 
 ### Details
 
@@ -303,79 +300,79 @@ package](https://github.com/biomedbigdata/polyester).
 
 The following parameters are specific for the ASimulatoR package:
 
-  - `novel_variants` : Numeric value between 0 and 1 indicating the
+-   `novel_variants` : Numeric value between 0 and 1 indicating the
     percentage of splicing variants that will be suppressed in an
     additional gtf file splicing\_variants\_novel.gtf.
 
-  - `write_gff` : Additionally to the gtf file containing the splice
+-   `write_gff` : Additionally to the gtf file containing the splice
     variants, a gff3 file with the same content will be printed to the
     outdir. Default `TRUE`
 
-  - `max_genes` : The maximum number of genes/exon supersets to be
+-   `max_genes` : The maximum number of genes/exon supersets to be
     included in the process of splice variant creation. Default `NULL`
     which means that all available exon supersets will be used. **This
-    is a computation heavy default and you might want to adjust it\!**
+    is a computation heavy default and you might want to adjust it!**
 
-  - `exon_junction_coverage` : Should the real coverage of exons,
+-   `exon_junction_coverage` : Should the real coverage of exons,
     junctions and retained introns be written into a additional file.
     Default `TRUE`
 
-  - `multi_events_per_exon` : Should it be possible to have more than
+-   `multi_events_per_exon` : Should it be possible to have more than
     one AS event at the same exon if multiple variants are created for
-    the same exon superset? \!If this option is set to `TRUE` , there
-    may occur unforeseen AS events that are not documented in the
-    event\_annotation file\!. Default `FALSE`
+    the same exon superset? !If this option is set to `TRUE` , there may
+    occur unforeseen AS events that are not documented in the
+    event\_annotation file!. Default `FALSE`
 
-  - `probs_as_freq` : Should `event_probs` be treated as relative
+-   `probs_as_freq` : Should `event_probs` be treated as relative
     frequencies instead of probabilities? Default `FALSE`
 
-  - `save_exon_superset` : Should the exon supersets be saved to .rda
+-   `save_exon_superset` : Should the exon supersets be saved to .rda
     file? Default `TRUE`
 
 These parameters are used by the polyester function
 `simulate_experiment` and have different defaults assigned in
 ASimulatoR:
 
-  - `fold_changes` : Currently, ASimulatoR introduces random isoform
+-   `fold_changes` : Currently, ASimulatoR introduces random isoform
     switches. Those can be retraced in the sim\_tx\_info.txt file
     written by polyester. We plan on improving this in the future.
 
-  - `strand_specific` : Strand-specific simulation (1st read forward
+-   `strand_specific` : Strand-specific simulation (1st read forward
     strand, 2nd read reverse strand with respect to transcript
     sequence). Default `TRUE` .
 
-  - `meanmodel` : `reads_per_transcripts` as a function of transcript
+-   `meanmodel` : `reads_per_transcripts` as a function of transcript
     length. Always `TRUE` in ASimulatoR.
 
-  - `frag_GC_bias`: A sample-specific GC content bias on the fragment
+-   `frag_GC_bias`: A sample-specific GC content bias on the fragment
     level. Currently not supported in ASimulatoR: always ‘none’.
 
-  - `verbose` : Should progress messages be printed during the
+-   `verbose` : Should progress messages be printed during the
     sequencing process? Default `TRUE` .
 
-  - `exon_junction_coverage` : Should the coverage of exons, junctions
+-   `exon_junction_coverage` : Should the coverage of exons, junctions
     and retained introns be determined? Default `TRUE` .
 
-  - `exon_junction_table` : If `exon_junction_coverage=TRUE` a
+-   `exon_junction_table` : If `exon_junction_coverage=TRUE` a
     `data.table` produced by `create_splicing_variants_and_annotation`
     to determine exon and intron coverage.
 
 These parameters are used by the `simulate_experiment` from the
 polyester R package to introduce technical biases.
 
-  - `pcr_rate`: Fraction of fragments that will be duplicated. Reads
+-   `pcr_rate`: Fraction of fragments that will be duplicated. Reads
     from these fragments will have PCR\_DUP in the name.
-  - `pcr_lambda`: If `!is.null(pcr_rate)` lambda for the poisson
+-   `pcr_lambda`: If `!is.null(pcr_rate)` lambda for the poisson
     distribution to draw the number of duplicates.
-  - `adapter_contamination`: If the fragment is smaller than the
+-   `adapter_contamination`: If the fragment is smaller than the
     readlength, should we sequence into the `adapter_sequence`?
-  - `adapter_sequence`: If `adapter_contamination`: adapter sequence
-  - `bias`: Positional bias model to use when fragmenting transcripts.
+-   `adapter_sequence`: If `adapter_contamination`: adapter sequence
+-   `bias`: Positional bias model to use when fragmenting transcripts.
     By default, all fragments from a transcript are equally likely
     (`'none'`). Other choices are `'rnaf'` and `'cdnaf'`, which mimic
     positional bias arising from different fragmentation protocols. See
-    `?generate_fragments` and the polyester manuscript (Frazee et al,
-    2014) for details.
+    `?generate_fragments` and the polyester manuscript (Frazee et
+    al, 2014) for details.
 
 Note: The user can further adjust the RNA-Seq reads simulation. Try
 `?simulate_experiment` to check all available parameters.

@@ -47,7 +47,7 @@ remotes::install_github("biomedbigdata/ASimulatoR", ref = "dev")
 This will automatically install all imported R packages. 
 
 There may be system requirements that you have to install manually
-e.g. on Ubuntu/Debian:
+e.g. on Ubuntu/Debian:
 
 ``` bash
 apt-get install -y libxml2-dev libcurl4-openssl-dev
@@ -207,11 +207,11 @@ simulate_alternative_splicing(input_dir, outdir, event_probs, ncores = 1L, ...)
 
 | Argument      | Description                                                                                                                                                                                                                                                                                                                                                  |
 | ------------- | ------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------ |
-| `input_dir`   | Character path to directory containing the gtf/gff file from which splice variants are created and genome fasta files with one file per chromosome i.e. <chr_name>.fa passed to polyester                                                                                                                                                                    |
+| `input_dir`   | Character path to directory containing the gtf/gff file from which splice variants are created and genome fasta files with one file per chromosome i.e. <chr_name>.fa passed to polyester                                                                                                                                                                    |
 | `outdir`      | character, path to folder where simulated reads and all annotations should be written, with *no* slash at the end. By default, reads are written to current working directory.                                                                                                                                                                               |
 | `event_probs` | Named list/vector containing numerics corresponding to the probabilites to create the event (combination). If `probs_as_freq` is `TRUE` `event_probs` correspond to the relative frequency of occurences for the event(combination) and in this case the sum of all frequencies has to be \<=1. No default, must not be `NULL`, except if `preset` is given. |
 | `preset`      | if you want to use preset parameters one of ‘event\_partition’, ‘experiment\_bias’, ‘event\_combination\_2’. Check `?presets` for more information                                                                                                                                                                                                           |
-| `ncores`      | the number of cores to be utilized for parallel generation of splice variant creation and read simulation.                                                                                                                                                                                                                                                   |
+| `ncores`      | the number of cores to be utilized for parallel generation of splice variant creation and read simulation. **This will spawn one process per core! Be aware that a lot of memory might be required for many processes.**                                                                                                                                                                                                                                                  |
 | `...`         | any of several other arguments that can be used to add nuance to the simulation and splice variant creation. See section Details.                                                                                                                                                                                                                                    |
 
 ### Details
@@ -294,8 +294,7 @@ R package to introduce technical biases.
     By default, all fragments from a transcript are equally likely
     (`'none'`). Other choices are `'rnaf'` and `'cdnaf'`, which mimic
     positional bias arising from different fragmentation protocols. See
-    `?generate_fragments` and the polyester manuscript (Frazee et al,
-    2014) for details.
+    `?generate_fragments` and the polyester manuscript (Frazee et al, 2014) for details.
 
 Note:  The user can further adjust the RNA-Seq reads simulation. Try `?simulate_experiment` to check all available parameters.
 
