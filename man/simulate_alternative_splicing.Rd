@@ -19,7 +19,7 @@ from which splice variants are created and genome fasta files with
 one file per chromosome i.e. <chr_name>.fa passed to polyester.}
 
 \item{outdir}{character, path to folder where simulated reads and all
-annotations should be written, with *no* slash at the end. By default,
+annotations should be written, with \strong{no} slash at the end. By default,
 reads are written to current working directory.}
 
 \item{event_probs}{Named list/vector containing numerics corresponding
@@ -34,7 +34,8 @@ No default, must not be \code{NULL}, except if \code{preset} is given.}
 Check \code{?\link{presets}} for more information}
 
 \item{ncores}{the number of cores to be utilized for parallel generation
-of splice variant creation and read simulation.}
+of splice variant creation and read simulation.
+\strong{This will spawn one process per core! Be aware that a lot of memory might be required for many processes.}}
 
 \item{...}{any of several other arguments that can be used to add nuance
 to the simulation and splice variant creation. See details.}
@@ -67,7 +68,7 @@ Reads are simulated from a GTF file which is produced by
   \item \code{max_genes}: The maximum number of genes/exon supersets to be included 
   in the process of splice variant creation. 
   Default \code{NULL} which means that all available exon supersets will be used.
-  **This is a computation heavy default and you might want to adjust it!**
+  \strong{This is a computation heavy default and you might want to adjust it!}
   \item \code{exon_junction_coverage}: Should the real coverage of exons, junctions 
   and retained introns be written into a additional file.
   Default \code{TRUE}

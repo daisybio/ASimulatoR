@@ -77,8 +77,8 @@
   stopifnot(is.integer(ncores))
   available_cores <- parallel::detectCores()
   if (ncores > available_cores) {
-    ncores <- available_cores
     warning(sprintf('%d cores available, but %d requested; set ncores to %d', available_cores, ncores, available_cores))
+    ncores <- available_cores
   }
   ncores
 }
@@ -110,7 +110,7 @@
 #' from which splice variants are created and genome fasta files with 
 #' one file per chromosome i.e. <chr_name>.fa passed to polyester.
 #' @param outdir character, path to folder where simulated reads and all
-#'   annotations should be written, with *no* slash at the end. By default,
+#'   annotations should be written, with \strong{no} slash at the end. By default,
 #'   reads are written to current working directory.
 #' @param event_probs Named list/vector containing numerics corresponding
 #'  to the probabilites to create the event(-combination). 
@@ -123,6 +123,7 @@
 #' Check \code{?\link{presets}} for more information
 #' @param ncores the number of cores to be utilized for parallel generation
 #'   of splice variant creation and read simulation.
+#'   \strong{This will spawn one process per core! Be aware that a lot of memory might be required for many processes.}
 #' @param ... any of several other arguments that can be used to add nuance
 #'   to the simulation and splice variant creation. See details.
 #'
@@ -142,7 +143,7 @@
 #'   \item \code{max_genes}: The maximum number of genes/exon supersets to be included 
 #'   in the process of splice variant creation. 
 #'   Default \code{NULL} which means that all available exon supersets will be used.
-#'   **This is a computation heavy default and you might want to adjust it!**
+#'   \strong{This is a computation heavy default and you might want to adjust it!}
 #'   \item \code{exon_junction_coverage}: Should the real coverage of exons, junctions 
 #'   and retained introns be written into a additional file.
 #'   Default \code{TRUE}

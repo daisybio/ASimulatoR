@@ -10,7 +10,8 @@ get_exon_supersets(gtf_path, ncores = 1L, save = TRUE)
 \item{gtf_path}{path to the gtf/gff file from which exon supersets are created}
 
 \item{ncores}{number of cores used to generate exon supersets in parallel.
-Default \code{1}: no parallel computing.}
+Default \code{1}: no parallel computing.
+\strong{This will spawn one process per core! Be aware that a lot of memory might be required for many processes.}}
 
 \item{save}{should the exon_supersets be saved to .rda file?
 Default \code{TRUE}}
