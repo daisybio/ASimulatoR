@@ -377,6 +377,12 @@ polyester R package to introduce technical biases.
 Note: The user can further adjust the RNA-Seq reads simulation. Try
 `?simulate_experiment` to check all available parameters.
 
+### Value
+
+No return, but simulated reads, a simulation info file, an alternative
+splicing event annotation and exon and junction coverages are written to
+`outdir` .
+
 ## Manuscript Use Case:
 
 If you would like to reproduce the use case mentioned in the manuscript
@@ -390,11 +396,10 @@ simulate_alternative_splicing('some_input_dir', 'some_output_dir', preset = 'man
 simulate_alternative_splicing('some_input_dir', 'some_output_dir', preset = 'manuscript', seq_depth = 5e07)
 ```
 
-## Value
+## Cite
 
-No return, but simulated reads, a simulation info file, an alternative
-splicing event annotation and exon and junction coverages are written to
-`outdir` .
+If you use ASimulatoR, please cite 
+Quirin Manz, Olga Tsoy, Amit Fenn, Jan Baumbach, Uwe Völker, Markus List, Tim Kacprowski, ASimulatoR: splice-aware RNA-Seq data simulation, Bioinformatics, Volume 37, Issue 18, 15 September 2021, Pages 3008–3010, https://doi.org/10.1093/bioinformatics/btab142
 
 ## References
 
