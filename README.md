@@ -127,7 +127,8 @@ The simulator supports eight different AS events:
 # here we will use the example data
 input_dir = system.file('extdata', package = 'ASimulatoR')
 
-# define, how many groups and samples per group you analyze. Here we create a small experiment with one sample in first group and two samples in second group:
+# define, how many groups and samples per group you analyze. 
+# Here we create a small experiment with one sample in first group and two samples in second group:
 num_reps = c(1,2)
 
 # define your outdir with NO slash
