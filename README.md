@@ -120,12 +120,16 @@ The simulator supports eight different AS events:
 | exon skiping | multiple exon skipping | intron retention | alternative 3’/acceptor splice site | alternative 5’/donor splice site | mutually exclusive exons | alternative first exon | alternative last exon |
 
 ``` r
-# define your input_dir, where the annotation gtf (or the exon supersets if you have already created them) and the genome fasta files (one per chromosome) are located
+# define your input_dir, where the annotation gtf and chromosome wise fasta files (one per chromosome) are located
+# Eg: 1.fa, 2.fa, ....22.fa
+# You can download the fasta files from https://ftp.ensembl.org/pub/current_fasta/homo_sapiens/dna/
+
 # here we will use the example data
 input_dir = system.file('extdata', package = 'ASimulatoR')
 
-# define, how many groups and samples per group you analyze. Here we create a small experiment with two groups with one sample per group:
-num_reps = c(1,1)
+# define, how many groups and samples per group you analyze. 
+# Here we create a small experiment with one sample in first group and two samples in second group:
+num_reps = c(1,2)
 
 # define your outdir with NO slash
 outdir = 'simulation'
